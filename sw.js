@@ -1,5 +1,5 @@
 /* derm-daily service worker: app shell offline, photos cached forever, new exams fetched fresh */
-const V = 'dd-v1';
+const V = 'dd-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './data/salt.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

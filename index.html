@@ -17,7 +17,8 @@
 <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 /* Layout: 시험지(본문) + OMR 답안지(우측 고정 열). 시험 중에는 상단 탭을 숨기고 시험지만 남긴다. */
 :root{
@@ -311,6 +312,15 @@ input.num{width:84px;padding:7px 10px;border-radius:8px;border:1px solid var(--r
 }
 
 /* standalone additions */
+:root{--f-sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;--f-serif:var(--f-sans)}
+body{font-feature-settings:"ss06" 1;letter-spacing:-0.005em}
+.q-stem{font-size:17px;line-height:1.75;font-weight:500}
+.opt,.ropt{font-size:16px;line-height:1.6}
+.opt .ot,.ropt span{word-break:keep-all;overflow-wrap:anywhere}
+.fig .desc{font-size:15px;line-height:1.7}
+.expl{font-size:15px}
+.brand b,.today-title{letter-spacing:-0.02em}
+@media (max-width:560px){.q-stem{font-size:16.5px}.opt{font-size:15.5px}}
 .lock{min-height:80vh;display:grid;place-items:center}
 .lock-card{padding:28px 24px;display:grid;gap:14px;max-width:380px;width:100%;text-align:center;justify-items:center}
 .ex-big{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
