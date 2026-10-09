@@ -27,9 +27,15 @@ NO_PHOTO = ('- 이 묶음에는 실제 사진이 없다. "(사진 1)", "다음 �
 EMPH_LEGEND = ("아래 [정리본 발췌]는 수험생이 피부과학 7판을 정리하며 중요한 곳에 표시해 둔 노트다. "
                "【…】는 밑줄·형광 표시, **…**는 굵게, (23기출)·(풀링21)처럼 연도가 붙은 표시는 실제로 출제됐던 곳이다. 이 표시들이 수험생이 중요하다고 본 출제 포인트다.")
 
+TB_RULE = ("발췌마다 붙은 [교과서 원문]은 가장 중요한 기준 교재인 「피부과학」 7판 본문이다(스캔 글자 인식본이라 오타·줄바꿈 깨짐이 있을 수 있다). "
+           "정답·수치·오답이 교과서와 맞는지 반드시 대조하고, 증례의 임상·조직 소견과 그럴듯한 오답은 교과서 본문에서 가져온다. "
+           "정리본과 교과서가 다르면 교과서를 따르고, 확실하지 않으면 그 사실로는 출제하지 않는다. "
+           "붙은 원문에 없는 내용은 work/src/tb/chNN.txt(단원별 교과서 전문)에서 Grep으로 찾아 확인할 수 있다.")
+
 ANCHOR = f"""[출제 근거 — 정리본의 강조 부분에서만]
 - {EMPH_LEGEND}
 - 문항마다 정답의 핵심 사실을 이 강조 부분에서 고른다. 강조되지 않은 곳이나 발췌 밖의 지식으로 정답을 만들지 않는다. 증례 설정과 오답 보기에는 교과서 지식을 써도 된다.
+- {TB_RULE}
 - 문항을 발췌들에 고르게 나눈다. 한 발췌에 몰지 말고, 같은 강조 문장으로 두 문항을 내지 않는다. 한 묶음에서 같은 질환(또는 같은 기전)을 묻는 문항은 2개까지.
 - "basis"에는 정답 근거가 된 강조 부분을 발췌에서 글자 그대로 복사한다(【 】·** 기호만 빼고 80자 이내). 검사 프로그램이 basis를 발췌와 대조해서, 발췌에 없는 basis를 가진 문항은 버린다."""
 
@@ -63,8 +69,45 @@ def out_format(want, extra=""):
 {extra}"""
 
 
-def excerpt(c, limit=3400):
-    return f"[발췌 {c['id']} — {kb_label(c)}]\n{c['text'][:limit]}"
+def tb_label(w):
+    a, b = w["p"]
+    return f"피부과학 7판 p.{a}{'–' + str(b) if b != a else ''}" + (f" · {w['h']}" if w.get("h") else "")
+
+
+def tb_block(w, limit=2000):
+    return f"[교과서 원문 — {tb_label(w)}]\n{w['text'][:limit]}"
+
+
+def excerpt(c, tbmap=None, limit=3400, n_tb=2, seen=None):
+    s = f"[발췌 {c['id']} — {kb_label(c)}]\n{c['text'][:limit]}"
+    seen = set() if seen is None else seen
+    wins = [tbmap[i] for i in (c.get("tb") or [])[:n_tb] if tbmap and i in tbmap and i not in seen]
+    seen |= {w["id"] for w in wins}
+    if wins:
+        s += "\n\n" + "\n\n".join(tb_block(w) for w in wins)
+    return s
+
+
+def related_textbook(tbmap, ch, k):
+    """Best textbook window for a past-exam item (photo variants)."""
+    if not tbmap:
+        return None
+    ans = (k["o"][k["a"]] or "").strip() if k.get("a") is not None else ""
+    body = " ".join([k.get("stem", ""), ans, k.get("ex", "")]).lower()
+    terms = {w for w in re.findall(r"[a-z][a-z0-9\-]{3,}", body)} | {w for w in re.findall(r"[가-힣]{3,}", body)}
+    terms -= {"다음", "사진", "환자", "진단", "치료", "소견", "가장", "적절한", "옳은", "것은", "with", "from", "that", "this", "disease", "skin", "있는", "없는"}
+    wins = [w for i, w in tbmap.items() if i.startswith(f"{int(ch)}t")]
+    if not wins:
+        return None
+    df = {t: sum(1 for w in wins if t in w["text"].lower()) for t in terms}
+    keys = _key_variants(ans)
+    best, score = None, 0.0
+    for w in wins:
+        t = (w.get("h", "") + " " + w["text"]).lower()
+        sc = sum(1 / df[x] for x in terms if df[x] and x in t) + (3 if any(x in t for x in keys) else 0)
+        if sc > score:
+            best, score = w, sc
+    return best if score >= 2 else None
 
 
 # ---------- choosing which parts of the notes a batch is built on ----------
@@ -146,7 +189,7 @@ def related_excerpt(KB, ch, k, window=2600):
 
 # ---------- the regular (notes-anchored) batch prompt ----------
 
-def regular_prompt(parts, chunks, K, recent, chname, rng, intro=""):
+def regular_prompt(parts, chunks, K, recent, chname, rng, intro="", tbmap=None):
     chs = [p["ch"] for p in parts]
     want = sum(p["n"] for p in parts)
     pool = [k for k in K if k["ch"] in chs]
@@ -160,15 +203,17 @@ def regular_prompt(parts, chunks, K, recent, chname, rng, intro=""):
     by_ch = {}
     for c in chunks:
         by_ch.setdefault(int(re.match(r"\d+", c["id"]).group()), []).append(c)
-    notes_txt = "\n\n".join(excerpt(c) for c in chunks)
+    seen = set()
+    notes_txt = "\n\n".join(excerpt(c, tbmap, seen=seen) for c in chunks)
+    anchor = ANCHOR if tbmap else ANCHOR.replace("\n- " + TB_RULE, "")
     return f"""{HEAD}
 {intro}
 [이번 묶음에서 출제할 문항 — 총 {want}문항]
 {chr(10).join(f"- Chapter {p['ch']}. {chname(p['ch'])}: {p['n']}문항 (발췌 {', '.join(c['id'] for c in by_ch.get(p['ch'], [])) or '없음'}에서)" for p in parts)}
 
-{ANCHOR}
+{anchor}
 
-[정리본 발췌]
+[정리본 발췌{' + 교과서 원문' if tbmap else ''}]
 {notes_txt}
 
 {RULES}

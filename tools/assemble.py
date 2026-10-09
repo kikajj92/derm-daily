@@ -153,7 +153,9 @@ def main():
             recent = [t for t in st.get("topics", []) if t.get("date", "") >= (datetime.date.fromisoformat(plan["date"]) - datetime.timedelta(days=21)).isoformat()]
             recent += [{"ch": q["ch"], "topic": q["topic"]} for q in qs]
             intro = "\n이전 묶음에서 일부 문항이 빠져서 보충하는 묶음이다. 오늘 이미 만든 주제(아래 '최근 며칠 이미 낸 주제'에 포함)와 겹치지 않게 한다.\n"
-            prompt = regular_prompt(parts, chunks, list(K.values()), recent, lambda c: CH.get(str(c), f"Chapter {c}"), r, intro)
+            tbp = W / "src" / "textbook.json"
+            tbmap = {w["id"]: w for v in json.loads(tbp.read_text())["ch"].values() for w in v} if tbp.exists() else None
+            prompt = regular_prompt(parts, chunks, list(K.values()), recent, lambda c: CH.get(str(c), f"Chapter {c}"), r, intro, tbmap)
             prompt += f"\n\n결과를 work/out/refill.jsonl 파일에 JSON Lines로 저장한다(UTF-8, 한 줄에 객체 하나).\n"
             (W / "refill.md").write_text(prompt)
             plan["refill"] = {"no": 99, "kind": "text", "parts": parts, "want": want, "chs": [p["ch"] for p in parts], "chunks": [c["id"] for c in chunks],

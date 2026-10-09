@@ -3,6 +3,7 @@
 이 저장소는 피부과 전문의 1차 시험 대비 개인용 모의고사 웹앱(GitHub Pages)이다. 매일 새벽 예약 작업이, 그리고 사용자가 요청할 때 추가 예약 작업이 이 문서대로 100문항짜리 회차를 하나씩 만들어 올린다. 입력으로 받는 값은 세 가지다.
 
 - `DD_PASS` — 암호화 비밀번호
+- `DD_SRCKEY` — 교과서(피부과학 7판) 본문 파일 `secure/textbook.enc`의 키. 예약 작업 지시문에 적혀 있다. 없으면 교과서 없이 정리본만으로 만든다.
 - `SET` — 회차 번호. 보통 `auto`(오늘 아직 안 쓴 다음 번호)
 - 날짜 — 오늘(Asia/Seoul). `plan.py`가 알아서 KST 오늘 날짜를 쓴다.
 
@@ -13,11 +14,12 @@
 ```bash
 python3 -c "import cryptography" 2>/dev/null || pip install -q cryptography --break-system-packages
 export DD_PASS=...            # 예약 작업 지시문에 적힌 값
+export DD_SRCKEY=...          # 예약 작업 지시문에 적힌 값
 python3 tools/ddcrypt.py unpack
 python3 tools/plan.py --set $SET
 ```
 
-`work/plan.json`과 `work/batches/NN.md`(묶음별 출제 지시문, 보통 20개 안팎)가 생긴다. 사진 묶음에 필요한 기출 사진은 `work/img/`에 풀린다. `SET`을 숫자로 줬는데 그 회차가 이미 `data/exams/index.json`에 있으면 `ALREADY EXISTS`가 찍힌다. 그때는 아무것도 하지 말고 끝낸다.
+`work/plan.json`과 `work/batches/NN.md`(묶음별 출제 지시문, 보통 20개 안팎)가 생긴다. 지시문에는 정리본 발췌와 그에 해당하는 교과서 본문이 함께 들어 있고, 단원별 교과서 전문은 `work/src/tb/chNN.txt`에 풀린다(쓰기·검토 에이전트가 Grep으로 확인용). 사진 묶음에 필요한 기출 사진은 `work/img/`에 풀린다. `SET`을 숫자로 줬는데 그 회차가 이미 `data/exams/index.json`에 있으면 `ALREADY EXISTS`가 찍힌다. 그때는 아무것도 하지 말고 끝낸다.
 
 ## 2. 문항 쓰기 (가장 중요)
 

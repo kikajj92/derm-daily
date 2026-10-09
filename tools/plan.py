@@ -15,8 +15,8 @@ ROOT = C.ROOT
 W = ROOT / "work"
 LET = "가나다라마"
 
-from prompts import (HEAD, RULES, FORMAT, BASIS, NO_PHOTO, EMPH_LEGEND, kb_label, fmt_kichul, out_format, excerpt,
-                     n_chunks, pick_note_chunks, pick_novel_chunks, related_excerpt, regular_prompt)
+from prompts import (HEAD, RULES, FORMAT, BASIS, NO_PHOTO, EMPH_LEGEND, TB_RULE, kb_label, fmt_kichul, out_format, excerpt,
+                     n_chunks, pick_note_chunks, pick_novel_chunks, related_excerpt, related_textbook, tb_block, regular_prompt)
 
 
 def load(name, default=None):
@@ -61,6 +61,10 @@ def main():
         print(f"ALREADY EXISTS: {eid} — nothing to do"); return
 
     K = load("kichul"); meta = load("meta"); KB = load("kb")["ch"]; state = load("state", {}) or {}
+    TB = load("textbook")
+    tbmap = {w["id"]: w for v in TB["ch"].values() for w in v} if TB else None
+    if not tbmap:
+        print("NOTE: textbook text not available (DD_SRCKEY not set) — prompts will use the notes only")
     KMAP = {k["id"]: k for k in K}
     CH = meta["chapters"]
     chname = lambda c: CH.get(str(c), f"Chapter {c}")
@@ -157,7 +161,9 @@ def main():
             nums = ", ".join(str(x) for x in range(first, first + len(ims)))
             rc, rel = related_excerpt(KB, k["ch"], k)
             if rc: rel_ids[sid] = rc["id"]
-            blocks.append(f"원문항 {i + 1} [ID {k['id']}] — Ch {k['ch']} {chname(k['ch'])} — 이미지 {nums}\n{fmt_kichul(k)}" + (f"\n\n{rel}" if rel else ""))
+            tw = related_textbook(tbmap, k["ch"], k)
+            blocks.append(f"원문항 {i + 1} [ID {k['id']}] — Ch {k['ch']} {chname(k['ch'])} — 이미지 {nums}\n{fmt_kichul(k)}"
+                          + (f"\n\n{rel}" if rel else "") + (f"\n\n{tb_block(tw)}" if tw else ""))
         for nm in names:
             src = ROOT / "data" / "img" / (nm + ".enc")
             (W / "img" / nm).write_bytes(C.dec_bytes(src.read_bytes()))
@@ -171,6 +177,7 @@ def main():
 원문항마다 같은 사진(들)을 그대로 다시 보여 주는 새 문항을 1개씩 만든다. 최근 기출은 임상사진과 조직병리 사진을 주고 묻는 문항이 많다.
 - 원문항과 다른 것을 묻는다. 원문항이 진단을 물었다면 병인·원인 유전자·조직 소견·진단 검사·1차 치료·합병증·동반 질환·예후 중 하나로, 원문항이 치료나 기전을 물었다면 진단·감별진단·조직 소견 등으로 바꾼다. 사진으로 진단을 떠올린 다음 한 단계 더 생각해야 풀리게 한다.
 - 원문항 아래에 [정리본 관련 부분]이 붙어 있으면, 새 문항이 묻는 포인트를 거기서 강조된 사실(【…】 밑줄·형광, **…** 굵게, (23기출) 같은 출제 표시)에서 고르고, "basis"에 그 강조 부분을 글자 그대로 복사한다. 붙어 있지 않으면 피부과학 7판의 핵심 내용으로 내고 basis는 빈 문자열로 둔다.
+- 원문항 아래 [교과서 원문]은 가장 중요한 기준 교재인 「피부과학」 7판 본문(스캔 글자 인식본)이다. 정답·오답이 교과서와 맞는지 대조하고, 교과서와 다르면 교과서를 따른다. 더 필요하면 work/src/tb/chNN.txt(단원별 교과서 전문)를 Grep으로 찾는다.
 - 질환은 원문항의 지문과 정답으로 확정한다. 사진에서 실제로 보이는 것과 모순되는 내용을 쓰지 않는다.
 - 지문은 "다음 사진과 같은 …" 또는 증례 + "(사진 1, 2)" 형식으로 쓰고, 사진의 진단명을 지문에 쓰지 않는다. 사진 번호는 그 원문항의 사진 안에서 1부터 센다.
 - 사진이 임상·조직·더모스코피 사진이 아니거나(도식, 교과서 글 캡처, 표 등) 진단을 확신할 수 없으면 그 원문항은 {{"src":"원문항ID","skip":true}} 한 줄만 쓴다.
@@ -189,7 +196,8 @@ def main():
         past = [f"- {re.sub(r'\s+', ' ', k['stem'])[:90]}" + (f" → {k['o'][k['a']]}" if k.get('a') is not None and k['o'][k['a']] else "") for k in K if k["ch"] == nb["ch"]][:60]
         rec = recent_lines([nb["ch"]])
         n_case = round(nb["n"] * 0.6)
-        chunk_txt = "\n\n".join(excerpt(c) for c in chunks)
+        seen = set()
+        chunk_txt = "\n\n".join(excerpt(c, tbmap, seen=seen) for c in chunks)
         prompt = f"""{HEAD}
 
 이번 묶음은 "아직 기출에 나오지 않은 내용"으로 Chapter {nb['ch']}. {chname(nb['ch'])} 새 문항 {nb['n']}개를 만든다. 아래 발췌는 수험생이 교과서를 정리한 노트(정리본)와, 있을 경우 Fitzpatrick 9판 보충 노트다. 정답 근거는 반드시 이 발췌에 적힌 사실이어야 한다.
@@ -203,7 +211,7 @@ def main():
 
 [출제 규칙]
 - 정리본 발췌에서는 강조 부분(【…】, **…**) 가운데 위 기출 목록이 아직 묻지 않은 세부를 고른다. Fitzpatrick 보충 노트에서는 7판 정리본에 없는 세부 사실(아형, 감별점, 검사·병리 소견, 원인 유전자·항원, 치료 순서·용량, 합병증, 역학 수치)을 고른다.
-- 정답은 발췌에 명시된 사실로만 정한다. 발췌에 없는 수치나 추론을 정답으로 만들지 않는다. 오답 보기는 같은 범주에서 그럴듯하게 만들되 교과서와 모순되지 않게 한다.
+- 정답은 발췌에 명시된 사실로만 정한다. 발췌에 없는 수치나 추론을 정답으로 만들지 않는다. 오답 보기는 같은 범주에서 그럴듯하게 만들되 교과서와 모순되지 않게 한다.{(chr(10) + '- ' + TB_RULE) if tbmap else ''}
 - 발췌에서 [차이]로 표시된 7판·Fitz 불일치 항목, "(일반 지식)" 표시 항목, 숫자가 서로 다르게 적힌 항목은 출제하지 않는다. 7판과 Fitz가 다를 수 있으면 정리본(7판) 기준.
 - "basis"에는 정답 근거가 된 발췌 문장(또는 강조 부분)을 글자 그대로 복사한다(80자 이내). 검사 프로그램이 발췌와 대조한다.
 - 발췌가 목록·표라도 문항은 실제 시험처럼 쓴다. 약 {n_case}문항은 증례형(진단명을 쓰지 않고 소견으로 진단을 떠올리게 한 뒤 다음 단계를 묻기), 나머지는 지식형.
@@ -222,7 +230,7 @@ def main():
         for p in parts:
             got = pick_note_chunks(KB, p["ch"], n_chunks(p["n"]), r, kb_use, used_today)
             used_today |= {x["id"] for x in got}; chunks += got
-        prompt = regular_prompt(parts, chunks, K, recent, chname, r)
+        prompt = regular_prompt(parts, chunks, K, recent, chname, r, tbmap=tbmap)
         batches.append({"no": no, "kind": "text", "parts": parts, "chunks": [c["id"] for c in chunks], "want": sum(p["n"] for p in parts),
                         "chs": [p["ch"] for p in parts], "prompt": prompt})
 
