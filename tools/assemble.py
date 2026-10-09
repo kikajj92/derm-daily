@@ -103,7 +103,9 @@ def main():
                 if q:
                     q["type"] = "photo"; q["imgs"] = k["qi"][:4]; q["srcKid"] = sid
             else:
-                q = normalize(o, b["chs"])
+                q = normalize({**o, "figures": []}, b["chs"])
+                if q and re.search(r"사진|그림", q["stem"]):   # these batches have no real photo
+                    q = None
                 if q and b["kind"] == "novel":
                     q["novel"] = True; q["kbRef"] = b.get("kbRef", [])
             if not q or q["stem"] in seen or len(got) >= b["want"]:

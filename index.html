@@ -321,6 +321,9 @@ body{font-feature-settings:"ss06" 1;letter-spacing:-0.005em}
 .expl{font-size:15px}
 .brand b,.today-title{letter-spacing:-0.02em}
 @media (max-width:560px){.q-stem{font-size:16.5px}.opt{font-size:15.5px}}
+.finds{display:grid;gap:8px;margin:-6px 0 18px}
+.find{border-left:3px solid var(--rule);padding:6px 0 6px 12px;font-size:15.5px;line-height:1.7}
+.find b{font-size:13px}
 .lock{min-height:80vh;display:grid;place-items:center}
 .lock-card{padding:28px 24px;display:grid;gap:14px;max-width:380px;width:100%;text-align:center;justify-items:center}
 .ex-big{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
@@ -543,16 +546,22 @@ async function openExam(id, view) {
     S.view = 'exam'; render(); startTimer(); wakeOn(); window.scrollTo(0, 0);
   } else { S.view = 'review'; S.rf = 'wrong'; render(); window.scrollTo(0, 0); }
 }
+// older sets described photos in text; show those as findings, not as photos
+const fakePhotos = q => !(q.imgs && q.imgs.length) && q.figs && q.figs.length;
+function stemOf(q) {
+  if (!fakePhotos(q)) return q.stem;
+  return q.stem.replace(/다음 사진과 같은/g, '다음과 같은').replace(/\(사진\s*(\d)\)/g, '(소견 $1)').replace(/사진\s*(\d)/g, '소견 $1').replace(/사진/g, '소견');
+}
 function renderFigs(q) {
   let out = ''; const imgs = q.imgs || [];
   if (imgs.length) out += `<div class="figs">${imgs.map((n, i) => `<figure class="fig"><figcaption>사진 ${i + 1}<span>기출 복원</span></figcaption><button class="zoom" data-act="zoom" aria-label="사진 ${i + 1} 크게 보기"><img data-enc="${esc(n)}" alt="사진 ${i + 1}"></button></figure>`).join('')}</div>`;
-  if (q.figs && q.figs.length) out += `<div class="figs">${q.figs.map((f, i) => `<figure class="fig"><figcaption>사진 ${imgs.length + i + 1}<span>${esc(f.kind)}</span></figcaption><div class="desc">${esc(f.desc)}</div></figure>`).join('')}</div>`;
+  if (q.figs && q.figs.length) out += `<div class="finds">${q.figs.map((f, i) => `<div class="find"><b>소견 ${i + 1}</b><span class="faint"> · ${esc(f.kind)} 소견</span><div>${esc(f.desc)}</div></div>`).join('')}</div>`;
   return out;
 }
 function renderPaper() {
   const q = S.qs[S.qi]; const sel = S.rec.answers[q.id];
   return `<div class="q-top"><span class="q-no">${S.qi + 1}.</span><span class="faint mono" style="font-size:12px">${S.qi + 1} / ${S.qs.length}</span></div>
-    <p class="q-stem">${esc(q.stem)}</p>${renderFigs(q)}
+    <p class="q-stem">${esc(stemOf(q))}</p>${renderFigs(q)}
     <ol class="opts">${q.options.map((o, i) => `<li><button class="opt ${sel === i ? 'sel' : ''}" data-act="pick" data-i="${i}" aria-pressed="${sel === i}"><span class="ol">${LET[i]}</span><span class="ot">${esc(o)}</span></button></li>`).join('')}</ol>
     <div class="q-nav"><button class="btn" data-act="prev" ${S.qi === 0 ? 'disabled' : ''}>← 이전</button><button class="btn ghost flagbtn" data-act="flag" aria-pressed="${!!S.rec.flags[q.id]}">${S.rec.flags[q.id] ? '표시됨' : '나중에 보기 표시'}</button>${S.qi === S.qs.length - 1 ? `<button class="btn primary" data-act="submit-ask">답안 제출</button>` : `<button class="btn" data-act="next">다음 →</button>`}</div>`;
 }
@@ -640,7 +649,7 @@ document.addEventListener('visibilitychange', () => {
 
 /* ---------- review ---------- */
 function askLink(q, mine) {
-  const t = `피부과 전문의 1차 시험 대비 문항이야. 피부과학 7판과 Fitzpatrick 9판 기준으로 정답이 맞는지 확인하고, 핵심 개념을 설명해 줘.\n\n${q.stem}\n${(q.figs || []).map((f, i) => `사진 ${i + 1}(${f.kind}): ${f.desc}`).join('\n')}\n${q.options.map((o, i) => `${LET[i]}) ${o}`).join('\n')}\n표시된 정답: ${LET[q.answer]}) ${q.options[q.answer]}${mine != null && mine !== q.answer ? `\n내가 고른 답: ${LET[mine]}) ${q.options[mine]}` : ''}\n해설: ${q.explanation || ''}`;
+  const t = `피부과 전문의 1차 시험 대비 문항이야. 피부과학 7판과 Fitzpatrick 9판 기준으로 정답이 맞는지 확인하고, 핵심 개념을 설명해 줘.\n\n${stemOf(q)}\n${(q.figs || []).map((f, i) => `소견 ${i + 1}(${f.kind}): ${f.desc}`).join('\n')}\n${q.options.map((o, i) => `${LET[i]}) ${o}`).join('\n')}\n표시된 정답: ${LET[q.answer]}) ${q.options[q.answer]}${mine != null && mine !== q.answer ? `\n내가 고른 답: ${LET[mine]}) ${q.options[mine]}` : ''}\n해설: ${q.explanation || ''}`;
   return 'https://claude.ai/new?q=' + encodeURIComponent(t.slice(0, 3500));
 }
 function renderExpl(q) {
@@ -669,7 +678,7 @@ function renderReview() {
 function renderReviewQ(q) {
   const r = S.rec; const n = S.qs.indexOf(q) + 1; const mine = r.answers[q.id]; const ex = !!r.excluded[q.id]; const ok = mine === q.answer;
   return `<article class="rq"><div class="rq-h"><div class="row" style="gap:12px"><span class="q-no ${ex ? '' : ok ? 'ok' : 'bad'}">${n}.</span>${badges(q)}${r.flags[q.id] ? '<span class="badge red">표시</span>' : ''}${ex ? '<span class="badge">채점 제외</span>' : ''}</div><span class="faint" style="font-size:12.5px">${mine === undefined ? '답 안 함' : ''}</span></div>
-    <p class="q-stem" style="margin:0">${esc(q.stem)}</p>${renderFigs(q)}
+    <p class="q-stem" style="margin:0">${esc(stemOf(q))}</p>${renderFigs(q)}
     <div>${q.options.map((o, i) => `<div class="ropt ${i === q.answer ? 'right' : ''} ${i === mine ? 'mine' + (i !== q.answer ? ' wrongpick' : '') : ''}"><span class="ol">${LET[i]}</span><span>${esc(o)}</span><span class="tag">${i === q.answer ? '정답' : i === mine ? '내 답' : ''}</span></div>`).join('')}</div>
     ${renderExpl(q)}
     <div class="row" style="gap:8px"><a class="btn sm" href="${esc(askLink(q, mine))}" target="_blank" rel="noopener">Claude에게 묻기</a><button class="btn sm ghost" data-act="exclude" data-q="${q.id}">${ex ? '채점에 다시 포함' : '오류 문항으로 처리'}</button></div></article>`;
@@ -686,7 +695,7 @@ function renderNotes() {
 function renderNote(n) {
   const q = n.q; const pick = S.nPick[n.id]; const shown = pick !== undefined;
   return `<article class="lc"><div class="lc-h">${badges(q)}<span class="faint" style="font-size:12.5px">${esc(n.date)}${n.mine != null ? ` · 그때 고른 답 ${LET[n.mine]}` : ''}</span></div>
-    <p class="q-stem">${esc(q.stem)}</p>${renderFigs(q)}
+    <p class="q-stem">${esc(stemOf(q))}</p>${renderFigs(q)}
     <div>${q.options.map((o, i) => shown ? `<div class="ropt ${i === q.answer ? 'right' : ''} ${i === pick ? 'mine' + (i !== q.answer ? ' wrongpick' : '') : ''}"><span class="ol">${LET[i]}</span><span>${esc(o)}</span><span class="tag">${i === q.answer ? '정답' : i === pick ? '내 답' : ''}</span></div>` : `<button class="opt" data-act="n-pick" data-id="${esc(n.id)}" data-i="${i}"><span class="ol">${LET[i]}</span><span class="ot">${esc(o)}</span></button>`).join('')}</div>
     ${shown ? renderExpl(q) : ''}
     <div class="row">${shown ? `<button class="btn sm" data-act="n-reset" data-id="${esc(n.id)}">다시 풀기</button><a class="btn sm" href="${esc(askLink(q, pick))}" target="_blank" rel="noopener">Claude에게 묻기</a>` : ''}<button class="btn sm ghost" data-act="n-del" data-id="${esc(n.id)}">외웠어요 · 빼기</button></div></article>`;
