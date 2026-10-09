@@ -9,7 +9,9 @@ the printed exam sorts them (numbers naturally, then letters, then Hangul), answ
 """
 import argparse, datetime, json, re, sys, unicodedata
 from pathlib import Path
+import random
 import ddcrypt as C
+from prompts import kb_label, anchor_of, n_chunks, pick_note_chunks, regular_prompt
 
 ROOT = C.ROOT
 W = ROOT / "work"
@@ -86,13 +88,16 @@ def main():
     plan = json.loads((W / "plan.json").read_text())
     K = {k["id"]: k for k in json.loads((W / "src" / "kichul.json").read_text())}
     meta = json.loads((W / "src" / "meta.json").read_text())
-    qs, seen, report = [], set(), []
+    KB = json.loads((W / "src" / "kb.json").read_text())["ch"]
+    kbmap = {x["id"]: x for c in KB.values() for x in c}
+    qs, seen, report, unanchored = [], set(), [], 0
     batches = list(plan["batches"])
     if (W / "out" / "refill.jsonl").exists() and plan.get("refill"):
         batches.append(plan["refill"])
     for b in batches:
         objs = read_jsonl(ROOT / b["out"])
-        got = []
+        chunks = [kbmap[i] for i in b.get("chunks", []) if i in kbmap]
+        got, drop = [], 0
         for o in objs:
             if b["kind"] == "photo":
                 sid = str(o.get("src") or "")
@@ -102,15 +107,27 @@ def main():
                 q = normalize({**o, "ch": k["ch"], "figures": []}, [k["ch"]])
                 if q:
                     q["type"] = "photo"; q["imgs"] = k["qi"][:4]; q["srcKid"] = sid
+                    rel = kbmap.get((b.get("rel") or {}).get(sid, ""))
+                    hit = anchor_of(q["basis"], [rel]) if rel else None
+                    if hit: q["kbRef"] = [kb_label(hit)]
+                    else: q["basis"] = ""
             else:
                 q = normalize({**o, "figures": []}, b["chs"])
-                if q and re.search(r"사진|그림", q["stem"]):   # these batches have no real photo
+                if q and re.search(r"사진|그림", q["stem"]):
                     q = None
+                if q and chunks:
+                    hit = anchor_of(q["basis"], chunks)
+                    if not hit:   # answer not traceable to the excerpts it was meant to come from
+                        q = None; drop += 1
+                    else:
+                        q["kbRef"] = [kb_label(hit)]
                 if q and b["kind"] == "novel":
-                    q["novel"] = True; q["kbRef"] = b.get("kbRef", [])
+                    q["novel"] = True
             if not q or q["stem"] in seen or len(got) >= b["want"]:
                 continue
             seen.add(q["stem"]); q["id"] = f"b{b['no']:02d}-{len(got):02d}"; got.append(q)
+        unanchored += drop
+        if drop: report.append(f"  ↳ {drop} dropped: basis not found in excerpts")
         b["got"] = len(got)
         report.append(f"{b['out']}: {len(got)}/{b['want']} ({b['kind']})")
         qs += got
@@ -119,22 +136,28 @@ def main():
         by_ch[str(q["ch"])] = by_ch.get(str(q["ch"]), 0) + 1
     missing = {c: n - by_ch.get(c, 0) for c, n in plan["plan"].items() if n - by_ch.get(c, 0) > 0}
     print("\n".join(report))
-    print(f"total {len(qs)}/{plan['n']}; missing by chapter: {missing}")
+    print(f"total {len(qs)}/{plan['n']}; missing by chapter: {missing}; unanchored dropped: {unanchored}")
 
     if not a.final:
         if missing and not plan.get("refill"):
             parts = [{"ch": int(c), "n": n} for c, n in sorted(missing.items(), key=lambda x: int(x[0]))]
             want = sum(p["n"] for p in parts)
-            ch = meta["chapters"]
-            first = (ROOT / plan["batches"][-1]["file"]).read_text() if plan["batches"] else ""
-            prompt = (
-                "이전 묶음에서 일부 문항이 빠졌다. 아래 단원별 개수만큼 새 문항을 더 쓴다. 형식과 규칙은 아래 예시 묶음 지시문과 같다. "
-                "이미 만든 문항과 주제가 겹치지 않게 한다.\n\n"
-                + "\n".join(f"- Chapter {p['ch']}. {ch.get(str(p['ch']), '')}: {p['n']}문항" for p in parts)
-                + f"\n\n총 {want}줄. 결과를 work/out/refill.jsonl 에 JSON Lines로 저장한다.\n\n[참고: 형식이 같은 다른 묶음의 지시문]\n" + first
-            )
+            CH = meta["chapters"]
+            r = random.Random("refill:" + plan["id"])
+            st = json.loads((W / "src" / "state.json").read_text()) if (W / "src" / "state.json").exists() else {}
+            used = set(plan.get("used", []))
+            chunks = []
+            for p in parts:
+                got = pick_note_chunks(KB, p["ch"], n_chunks(p["n"]), r, st.get("kbUse", {}), used)
+                used |= {x["id"] for x in got}; chunks += got
+            recent = [t for t in st.get("topics", []) if t.get("date", "") >= (datetime.date.fromisoformat(plan["date"]) - datetime.timedelta(days=21)).isoformat()]
+            recent += [{"ch": q["ch"], "topic": q["topic"]} for q in qs]
+            intro = "\n이전 묶음에서 일부 문항이 빠져서 보충하는 묶음이다. 오늘 이미 만든 주제(아래 '최근 며칠 이미 낸 주제'에 포함)와 겹치지 않게 한다.\n"
+            prompt = regular_prompt(parts, chunks, list(K.values()), recent, lambda c: CH.get(str(c), f"Chapter {c}"), r, intro)
+            prompt += f"\n\n결과를 work/out/refill.jsonl 파일에 JSON Lines로 저장한다(UTF-8, 한 줄에 객체 하나).\n"
             (W / "refill.md").write_text(prompt)
-            plan["refill"] = {"no": 99, "kind": "text", "parts": parts, "want": want, "chs": [p["ch"] for p in parts], "file": "work/refill.md", "out": "work/out/refill.jsonl"}
+            plan["refill"] = {"no": 99, "kind": "text", "parts": parts, "want": want, "chs": [p["ch"] for p in parts], "chunks": [c["id"] for c in chunks],
+                              "file": "work/refill.md", "out": "work/out/refill.jsonl"}
             (W / "plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=1))
             print("REFILL NEEDED: work/refill.md")
             sys.exit(3)
@@ -170,9 +193,9 @@ def main():
     pu, ku = st.setdefault("photoUse", {}), st.setdefault("kbUse", {})
     for q in qs:
         if q.get("srcKid"): pu[q["srcKid"]] = pu.get(q["srcKid"], 0) + 1
-    for b in plan["batches"]:
-        if b["kind"] == "novel" and b.get("got"):
-            for cid in b["chunks"]: ku[cid] = ku.get(cid, 0) + 1
+    for b in plan["batches"] + ([plan["refill"]] if plan.get("refill") else []):
+        if b.get("got"):
+            for cid in b.get("chunks", []): ku[cid] = ku.get(cid, 0) + 1
     st["topics"] = ([t for t in st.get("topics", []) if t.get("date") != plan["date"]] + [{"date": plan["date"], "ch": q["ch"], "topic": q["topic"]} for q in qs])[-1500:]
     C.enc_json(st, ROOT / "secure" / "state.enc")
     print(f"published {plan['id']}: {len(qs)} questions {counts}")
