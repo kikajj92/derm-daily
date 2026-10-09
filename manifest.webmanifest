@@ -1,0 +1,17 @@
+{
+  "name": "피부과 1차 데일리 모의고사",
+  "short_name": "피부과 1차",
+  "description": "매일 새로 만드는 피부과 전문의 1차 모의고사",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f2",
+  "theme_color": "#f5f5f2",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
