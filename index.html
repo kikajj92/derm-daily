@@ -380,13 +380,22 @@ async function fetchDec(url, json = true, opts) {
   return json ? JSON.parse(new TextDecoder().decode(p)) : p;
 }
 const IMG = new Map();
+const toDataUrl = buf => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('읽기 실패')); fr.readAsDataURL(new Blob([buf], { type: 'image/jpeg' })); });
 function imgUrl(name) {
-  if (!IMG.has(name)) IMG.set(name, fetchDec('data/img/' + name + '.enc', false).then(b => URL.createObjectURL(new Blob([b], { type: 'image/jpeg' }))).catch(e => { IMG.delete(name); throw e; }));
+  if (!IMG.has(name)) IMG.set(name, (async () => {
+    let r;
+    try { r = await fetch('data/img/' + encodeURIComponent(name) + '.enc'); } catch { throw new Error('인터넷 연결'); }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    let plain; try { plain = await decBuf(await r.arrayBuffer()); } catch { throw new Error('복호화 실패'); }
+    return toDataUrl(plain);
+  })().catch(e => { IMG.delete(name); throw e; }));
   return IMG.get(name);
 }
 function hydrateImages(root = document) {
-  root.querySelectorAll('img[data-enc]:not([src])').forEach(img => {
-    imgUrl(img.dataset.enc).then(u => { img.src = u; const z = img.closest('[data-act="zoom"]'); if (z) z.dataset.src = u; }).catch(() => { img.alt = '사진을 불러오지 못했어요'; });
+  root.querySelectorAll('img[data-enc]:not([src]):not([data-busy])').forEach(img => {
+    img.dataset.busy = '1';
+    imgUrl(img.dataset.enc).then(u => { img.src = u; const z = img.closest('[data-act="zoom"]'); if (z) z.dataset.src = u; })
+      .catch(e => { const f = img.closest('figure'); if (f) f.insertAdjacentHTML('beforeend', `<div class="desc" style="font-size:13px">사진을 불러오지 못했어요 (${esc(e.message)}). <button class="btn sm" data-act="img-retry">다시 시도</button></div>`); img.remove(); });
   });
 }
 
@@ -746,6 +755,7 @@ const ACT = {
   'n-del'(t) { S.notes = S.notes.filter(n => n.id !== t.dataset.id); LS.set('notes', S.notes); const y = scrollY; render(); scrollTo(0, y); },
   export() { exportData(); },
   lock() { LS.del('key'); KEY = null; S.locked = true; render(); },
+  'img-retry'() { if (S.view === 'exam') { $('#paper').innerHTML = renderPaper(); hydrateImages($('#paper')); } else render(); },
 };
 document.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (!t || t.disabled) return; const f = ACT[t.dataset.act]; if (f) { e.preventDefault(); f(t, e); } });
 document.addEventListener('submit', e => { if (e.target.id === 'lock-form') { e.preventDefault(); unlock($('#pw').value.trim()); } });
