@@ -449,6 +449,7 @@ async function unlock(pw) {
 }
 
 /* ---------- today ---------- */
+const MORE_URL = 'https://claude.ai/new?q=' + encodeURIComponent("예약 작업 '피부과 1차 모의고사 추가 회차 (요청 시)' (trig_01S7ojSryBAkod7oYcWkWFj3)를 지금 한 번 실행해 줘. 오늘 날짜로 100문항 회차가 하나 더 만들어져서 내 모의고사 사이트에 올라가는 작업이야.");
 function statusOf(entry) { const r = recOf(entry.id); return r ? r.status : 'new'; }
 function streak() {
   const days = new Set(allRecs().filter(r => r.status === 'done').map(r => r.date));
@@ -480,7 +481,7 @@ function renderToday() {
       <div class="today-date">${fmtDate(t)}</div>
       <h1 class="today-title">${todays.length ? '오늘의 모의고사' : '오늘 회차 준비 중'}</h1>
       ${hero}
-      <div class="row"><button class="btn ghost sm" data-act="refresh">새 회차 확인</button><span class="note">${S.index.updated ? '마지막 업데이트 ' + new Date(S.index.updated).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span></div>
+      <div class="row"><a class="btn sm" href="${esc(MORE_URL)}" target="_blank" rel="noopener">100문항 더 만들기</a><button class="btn ghost sm" data-act="refresh">새 회차 확인</button><span class="note">${S.index.updated ? '마지막 업데이트 ' + new Date(S.index.updated).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span></div>
     </div>
     <aside class="today-side"><div><h2>기록</h2></div>
       <dl class="kv"><dt>연속 학습</dt><dd>${streak()}일</dd><dt>푼 회차</dt><dd>${done.length}회</dd><dt>최근 점수</dt><dd>${last ? last.score + '점' : '—'}</dd>
@@ -680,7 +681,7 @@ function renderSettings() {
     <div class="set-r"><div><b>시험 시간 (100문항 기준)</b><p>문항 수에 비례해 줄어들어요. 시간이 끝나면 자동 제출돼요.</p></div><div class="row"><input class="num" id="set-time" type="number" min="10" max="300" step="5" value="${S.settings.timeMin}"><span class="muted">분</span></div></div>
     <div class="set-r"><div><b>홈 화면에 앱으로 추가</b><p>${ios ? 'Safari 아래쪽 공유 버튼 → "홈 화면에 추가".' : 'Chrome 메뉴(⋮) → "홈 화면에 추가" 또는 "앱 설치".'} 그러면 주소창 없이 전체 화면으로 열려요.</p></div><span></span></div>
     <div class="set-r"><div><b>기록 백업</b><p>풀이 기록과 오답노트는 이 기기에만 저장돼요. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 파일로 내보내 두세요.</p></div><div class="row"><button class="btn sm" data-act="export">내보내기</button><label class="btn sm" for="imp">가져오기</label><input id="imp" type="file" accept="application/json" hidden></div></div>
-    <div class="set-r"><div><b>문제는 어떻게 만들어지나요</b><p>매일 새벽 Claude가 2018–2026 기출 단원 빈도대로 100문항 회차를 만들어 올려요. 사진 제시형 위주이고, 약 30%는 기출 복원 사진 변형, 약 15%는 정리본·Fitzpatrick 노트에서 아직 기출에 안 나온 내용이에요. AI가 쓴 문항이라 틀릴 수 있으니 이상하면 "Claude에게 묻기"나 "오류 문항으로 처리"를 쓰세요.</p></div><span></span></div>
+    <div class="set-r"><div><b>문제는 어떻게 만들어지나요</b><p>매일 새벽 Claude가 2018–2026 기출 단원 빈도대로 100문항 회차를 만들어 올려요. 더 풀고 싶은 날은 오늘 화면의 \"100문항 더 만들기\"를 누르면 Claude 대화가 열리고, 보내면 30–60분 뒤 같은 날짜로 회차가 하나 더 올라와요. 사진 제시형 위주이고, 약 30%는 기출 복원 사진 변형, 약 15%는 정리본·Fitzpatrick 노트에서 아직 기출에 안 나온 내용이에요. AI가 쓴 문항이라 틀릴 수 있으니 이상하면 "Claude에게 묻기"나 "오류 문항으로 처리"를 쓰세요.</p></div><span></span></div>
     <div class="set-r"><div><b>잠그기</b><p>이 기기에 저장된 비밀번호 키를 지워요. 기록은 남아요.</p></div><button class="btn sm ghost" data-act="lock">잠그기</button></div>
   </section>`;
 }

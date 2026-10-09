@@ -142,6 +142,15 @@ def main():
     if len(qs) < plan["n"] * 0.6:
         sys.exit(f"only {len(qs)} questions — not publishing")
     qs.sort(key=lambda q: (q["ch"], q["id"]))
+    idx_p = ROOT / "data" / "exams" / "index.json"
+    idx = json.loads(idx_p.read_text()) if idx_p.exists() else {"exams": []}
+    taken = {e["id"] for e in idx["exams"]}
+    if plan["id"] in taken and plan["id"].count("-") == 3:   # another run published this number first
+        k = int(plan["id"].rsplit("-", 1)[1])
+        while f"{plan['date']}-{k}" in taken: k += 1
+        plan["id"] = f"{plan['date']}-{k}"
+        (W / "plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=1))
+        print("number taken — publishing as", plan["id"])
     d = datetime.date.fromisoformat(plan["date"])
     sset = plan["id"].rsplit("-", 1)[-1] if plan["id"].count("-") == 3 else ""
     title = f"{d.month}월 {d.day}일 ({'월화수목금토일'[d.weekday()]})" + (f" {sset}회차" if sset else "")
@@ -150,8 +159,6 @@ def main():
     exam = {"v": 1, "id": plan["id"], "date": plan["date"], "title": title, "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
             "plan": plan["plan"], "counts": counts, "questions": qs}
     C.enc_json(exam, ROOT / "data" / "exams" / f"{plan['id']}.enc")
-    idx_p = ROOT / "data" / "exams" / "index.json"
-    idx = json.loads(idx_p.read_text()) if idx_p.exists() else {"exams": []}
     idx["exams"] = [e for e in idx["exams"] if e["id"] != plan["id"]] + [{"id": plan["id"], "date": plan["date"], "n": len(qs), "file": f"data/exams/{plan['id']}.enc"}]
     idx["exams"].sort(key=lambda e: e["id"], reverse=True)
     idx["updated"] = exam["created"]

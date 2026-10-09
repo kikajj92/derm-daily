@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Plan today's mock exam and write one prompt file per batch.
 
-  DD_PASS=... python3 tools/plan.py --set 1 [--date 2026-10-10] [--n 100] [--photo 30] [--novel 15]
+  DD_PASS=... python3 tools/plan.py [--set auto|1|2…] [--date 2026-10-10] [--n 100] [--photo 30] [--novel 15]
 
 Reads work/src/{kichul,meta,kb,state}.json (run `tools/ddcrypt.py unpack` first).
 Writes work/plan.json, work/batches/NN.md and decrypts the photos each photo batch needs into work/img/.
@@ -80,11 +80,16 @@ def main():
     ap.add_argument("--n", type=int, default=100)
     ap.add_argument("--photo", type=int, default=30)
     ap.add_argument("--novel", type=int, default=15)
-    ap.add_argument("--set", type=int, default=1)
+    ap.add_argument("--set", default="auto", help="회차 번호, auto면 오늘 비어 있는 다음 번호")
     a = ap.parse_args()
-    eid = f"{a.date}-{a.set}"
     idx_p = ROOT / "data" / "exams" / "index.json"
-    if idx_p.exists() and any(e["id"] == eid for e in json.loads(idx_p.read_text()).get("exams", [])):
+    have = {e["id"] for e in json.loads(idx_p.read_text()).get("exams", [])} if idx_p.exists() else set()
+    if str(a.set) == "auto":
+        k = 1
+        while f"{a.date}-{k}" in have: k += 1
+        a.set = k
+    eid = f"{a.date}-{a.set}"
+    if eid in have:
         print(f"ALREADY EXISTS: {eid} — nothing to do"); return
 
     K = load("kichul"); meta = load("meta"); KB = load("kb")["ch"]; state = load("state", {}) or {}

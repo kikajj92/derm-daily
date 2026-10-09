@@ -1,9 +1,9 @@
 # 매일 회차 만들기 — 예약 작업이 따르는 절차
 
-이 저장소는 피부과 전문의 1차 시험 대비 개인용 모의고사 웹앱(GitHub Pages)이다. 매일 새벽 예약 작업이 이 문서대로 100문항짜리 회차를 하나 만들어 올린다. 입력으로 받는 값은 세 가지다.
+이 저장소는 피부과 전문의 1차 시험 대비 개인용 모의고사 웹앱(GitHub Pages)이다. 매일 새벽 예약 작업이, 그리고 사용자가 요청할 때 추가 예약 작업이 이 문서대로 100문항짜리 회차를 하나씩 만들어 올린다. 입력으로 받는 값은 세 가지다.
 
 - `DD_PASS` — 암호화 비밀번호
-- `SET` — 회차 번호(1 또는 2)
+- `SET` — 회차 번호. 보통 `auto`(오늘 아직 안 쓴 다음 번호)
 - 날짜 — 오늘(Asia/Seoul). `plan.py`가 알아서 KST 오늘 날짜를 쓴다.
 
 `secure/`·`data/`의 `.enc` 파일은 전부 암호화돼 있다. 복호화한 내용(`work/`)은 절대 커밋하지 않는다(.gitignore에 있음).
@@ -17,7 +17,7 @@ python3 tools/ddcrypt.py unpack
 python3 tools/plan.py --set $SET
 ```
 
-`work/plan.json`과 `work/batches/NN.md`(묶음별 출제 지시문, 보통 20개 안팎)가 생긴다. 사진 묶음에 필요한 기출 사진은 `work/img/`에 풀린다. 이미 오늘 같은 회차가 `data/exams/index.json`에 있으면 아무것도 하지 말고 끝낸다.
+`work/plan.json`과 `work/batches/NN.md`(묶음별 출제 지시문, 보통 20개 안팎)가 생긴다. 사진 묶음에 필요한 기출 사진은 `work/img/`에 풀린다. `SET`을 숫자로 줬는데 그 회차가 이미 `data/exams/index.json`에 있으면 `ALREADY EXISTS`가 찍힌다. 그때는 아무것도 하지 말고 끝낸다.
 
 ## 2. 문항 쓰기 (가장 중요)
 
@@ -40,7 +40,7 @@ python3 tools/assemble.py
 
 ```bash
 python3 tools/assemble.py --final
-tools/publish.sh "회차 $(date +%F)-$SET"
+tools/publish.sh "새 회차"
 ```
 
 `publish.sh`가 다른 회차와 동시에 올리다 충돌하면 최신 상태 위에 다시 만들어 올린다. 마지막 출력이 `pushed`면 끝. 몇 분 안에 GitHub Pages 사이트에 반영된다.
