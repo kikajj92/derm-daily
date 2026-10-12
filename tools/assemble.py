@@ -169,6 +169,7 @@ def main():
     if len(qs) < plan["n"] * 0.6:
         sys.exit(f"only {len(qs)} questions — not publishing")
     qs.sort(key=lambda q: (q["ch"], q["id"]))
+    random.Random("order:" + plan["id"]).shuffle(qs)   # 단원 순서 대신 섞어서 낸다(회차 id로 고정된 순서)
     idx_p = ROOT / "data" / "exams" / "index.json"
     idx = json.loads(idx_p.read_text()) if idx_p.exists() else {"exams": []}
     taken = {e["id"] for e in idx["exams"]}
