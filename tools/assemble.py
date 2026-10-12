@@ -11,7 +11,8 @@ import argparse, datetime, json, re, sys, unicodedata
 from pathlib import Path
 import random
 import ddcrypt as C
-from prompts import kb_label, anchor_of, n_chunks, pick_note_chunks, regular_prompt
+from prompts import kb_label, tb_label, anchor_of
+from targets import pick_targets, target_prompt, kcov_terms, is_repeat
 
 ROOT = C.ROOT
 W = ROOT / "work"
@@ -81,23 +82,43 @@ def read_jsonl(path):
     return out
 
 
+def load_src(name, default=None):
+    p = W / "src" / f"{name}.json"
+    return json.loads(p.read_text()) if p.exists() else default
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--final", action="store_true")
     a = ap.parse_args()
     plan = json.loads((W / "plan.json").read_text())
-    K = {k["id"]: k for k in json.loads((W / "src" / "kichul.json").read_text())}
-    meta = json.loads((W / "src" / "meta.json").read_text())
-    KB = json.loads((W / "src" / "kb.json").read_text())["ch"]
+    Klist = load_src("kichul"); K = {k["id"]: k for k in Klist}
+    meta = load_src("meta")
+    KB = load_src("kb")["ch"]
+    st = load_src("state", {}) or {}
+    TB = load_src("textbook")
+    tbmap = {w["id"]: w for v in TB["ch"].values() for w in v} if TB else {}
     kbmap = {x["id"]: x for c in KB.values() for x in c}
-    qs, seen, report, unanchored = [], set(), [], 0
+    import plan as PL
+    CH = meta["chapters"]
+    chname = lambda c: CH.get(str(c), f"Chapter {c}")
+    ctx = PL.build_ctx(KB, tbmap, st, Klist, chname, random.Random("refill-ex:" + plan["id"]))
+    PT = ctx["PT"]
+    hist = st.get("hist", [])
+    today = plan["date"]
+    qs, seen, report = [], set(), []
+    drops = {"anchor": 0, "repeat": 0, "target": 0}
+    used_tids = set()
     batches = list(plan["batches"])
     if (W / "out" / "refill.jsonl").exists() and plan.get("refill"):
         batches.append(plan["refill"])
     for b in batches:
         objs = read_jsonl(ROOT / b["out"])
-        chunks = [kbmap[i] for i in b.get("chunks", []) if i in kbmap]
-        got, drop = [], 0
+        allowed = {}
+        for t in b.get("targets", []):
+            allowed[t["id"]] = t
+            if t.get("alt"): allowed[t["alt"]] = {"kind": "pt", "id": t["alt"], "ch": t["ch"]}
+        got, drop = [], {"anchor": 0, "repeat": 0, "target": 0}
         for o in objs:
             if b["kind"] == "photo":
                 sid = str(o.get("src") or "")
@@ -115,50 +136,60 @@ def main():
                 q = normalize({**o, "figures": []}, b["chs"])
                 if q and re.search(r"사진|그림", q["stem"]):
                     q = None
-                if q and chunks:
-                    hit = anchor_of(q["basis"], chunks)
-                    if not hit:   # answer not traceable to the excerpts it was meant to come from
-                        q = None; drop += 1
+                if q and allowed:
+                    tid = str(o.get("tid") or "").strip()
+                    t = allowed.get(tid)
+                    if not t or tid in used_tids:
+                        q = None; drop["target"] += 1
                     else:
-                        q["kbRef"] = [kb_label(hit)]
+                        src = [kbmap[PT[tid]["chunk"]]] if t["kind"] == "pt" and tid in PT else ([{"id": tid, "text": tbmap[tid]["text"]}] if tid in tbmap else [])
+                        if not anchor_of(q["basis"], src):   # answer not traceable to the target it claims
+                            q = None; drop["anchor"] += 1
+                        else:
+                            q["tid"] = tid; q["ch"] = t["ch"]
+                            q["kbRef"] = [kb_label(kbmap[PT[tid]["chunk"]])] if t["kind"] == "pt" else [tb_label(tbmap[tid])]
                 if q and b["kind"] == "novel":
                     q["novel"] = True
+            if q and (is_repeat(q, hist, today) or is_repeat(q, [{"ch": x["ch"], "t": x["topic"], "a": x["options"][x["answer"]], "d": today} for x in qs + got], today)):
+                q = None; drop["repeat"] += 1
             if not q or q["stem"] in seen or len(got) >= b["want"]:
                 continue
             seen.add(q["stem"]); q["id"] = f"b{b['no']:02d}-{len(got):02d}"; got.append(q)
-        unanchored += drop
-        if drop: report.append(f"  ↳ {drop} dropped: basis not found in excerpts")
+            if q.get("tid"): used_tids.add(q["tid"])
+        for x in drop: drops[x] += drop[x]
         b["got"] = len(got)
-        report.append(f"{b['out']}: {len(got)}/{b['want']} ({b['kind']})")
+        report.append(f"{b['out']}: {len(got)}/{b['want']} ({b['kind']})" + (f"  dropped {drop}" if any(drop.values()) else ""))
         qs += got
     by_ch = {}
     for q in qs:
         by_ch[str(q["ch"])] = by_ch.get(str(q["ch"]), 0) + 1
-    missing = {c: n - by_ch.get(c, 0) for c, n in plan["plan"].items() if n - by_ch.get(c, 0) > 0}
+    short = plan["n"] - len(qs)
+    missing = {}
+    for c, n in sorted(plan["plan"].items(), key=lambda x: int(x[0])):
+        m = min(n - by_ch.get(c, 0), short - sum(missing.values()))
+        if m > 0: missing[c] = m
     print("\n".join(report))
-    print(f"total {len(qs)}/{plan['n']}; missing by chapter: {missing}; unanchored dropped: {unanchored}")
+    print(f"total {len(qs)}/{plan['n']}; missing by chapter: {missing}; dropped {drops}")
 
     if not a.final:
         if missing and not plan.get("refill"):
-            parts = [{"ch": int(c), "n": n} for c, n in sorted(missing.items(), key=lambda x: int(x[0]))]
-            want = sum(p["n"] for p in parts)
-            CH = meta["chapters"]
-            r = random.Random("refill:" + plan["id"])
-            st = json.loads((W / "src" / "state.json").read_text()) if (W / "src" / "state.json").exists() else {}
-            used = set(plan.get("used", []))
-            chunks = []
+            parts = [{"ch": int(c), "n": n} for c, n in missing.items()]
+            taken = set(plan.get("taken", [])) | used_tids
+            kterms = kcov_terms(Klist)
+            TBW = {}
+            for wid, w in tbmap.items():
+                TBW.setdefault(re.match(r"\d+", wid).group(), []).append(w)
+            tg = []
             for p in parts:
-                got = pick_note_chunks(KB, p["ch"], n_chunks(p["n"]), r, st.get("kbUse", {}), used)
-                used |= {x["id"] for x in got}; chunks += got
-            recent = [t for t in st.get("topics", []) if t.get("date", "") >= (datetime.date.fromisoformat(plan["date"]) - datetime.timedelta(days=21)).isoformat()]
-            recent += [{"ch": q["ch"], "topic": q["topic"]} for q in qs]
-            intro = "\n이전 묶음에서 일부 문항이 빠져서 보충하는 묶음이다. 오늘 이미 만든 주제(아래 '최근 며칠 이미 낸 주제'에 포함)와 겹치지 않게 한다.\n"
-            tbp = W / "src" / "textbook.json"
-            tbmap = {w["id"]: w for v in json.loads(tbp.read_text())["ch"].values() for w in v} if tbp.exists() else None
-            prompt = regular_prompt(parts, chunks, list(K.values()), recent, lambda c: CH.get(str(c), f"Chapter {c}"), r, intro, tbmap)
+                c = str(p["ch"])
+                tg += pick_targets(p["ch"], p["n"], "regular", ctx["P"].get(c, []), TBW.get(c, []), st, today,
+                                   random.Random(f"refill:{plan['id']}:{c}"), taken, kterms)
+            ctx["hist"] = hist + [{"ch": q["ch"], "t": q["topic"], "a": q["options"][q["answer"]], "d": today} for q in qs]
+            intro = "\n이전 묶음에서 일부 문항이 빠져서 보충하는 묶음이다.\n"
+            prompt = target_prompt(tg, ctx, "regular", intro)
             prompt += f"\n\n결과를 work/out/refill.jsonl 파일에 JSON Lines로 저장한다(UTF-8, 한 줄에 객체 하나).\n"
             (W / "refill.md").write_text(prompt)
-            plan["refill"] = {"no": 99, "kind": "text", "parts": parts, "want": want, "chs": [p["ch"] for p in parts], "chunks": [c["id"] for c in chunks],
+            plan["refill"] = {"no": 99, "kind": "text", "parts": parts, "targets": tg, "want": len(tg), "chs": [p["ch"] for p in parts],
                               "file": "work/refill.md", "out": "work/out/refill.jsonl"}
             (W / "plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=1))
             print("REFILL NEEDED: work/refill.md")
@@ -191,17 +222,33 @@ def main():
     idx["exams"].sort(key=lambda e: e["id"], reverse=True)
     idx["updated"] = exam["created"]
     idx_p.write_text(json.dumps(idx, ensure_ascii=False, indent=1))
-    st_p = W / "src" / "state.json"
-    st = json.loads(st_p.read_text()) if st_p.exists() else {}
-    pu, ku = st.setdefault("photoUse", {}), st.setdefault("kbUse", {})
-    for q in qs:
-        if q.get("srcKid"): pu[q["srcKid"]] = pu.get(q["srcKid"], 0) + 1
-    for b in plan["batches"] + ([plan["refill"]] if plan.get("refill") else []):
-        if b.get("got"):
-            for cid in b.get("chunks", []): ku[cid] = ku.get(cid, 0) + 1
-    st["topics"] = ([t for t in st.get("topics", []) if t.get("date") != plan["date"]] + [{"date": plan["date"], "ch": q["ch"], "topic": q["topic"]} for q in qs])[-1500:]
+    record(st, qs, PT, today)
     C.enc_json(st, ROOT / "secure" / "state.enc")
     print(f"published {plan['id']}: {len(qs)} questions {counts}")
+
+
+def record(st, qs, PT, today):
+    """Remember what was asked so later sets move on to other facts."""
+    pu, plast, pask = st.setdefault("photoUse", {}), st.setdefault("photoLast", {}), st.setdefault("photoAsk", {})
+    ptu, ptl, grp = st.setdefault("ptUse", {}), st.setdefault("ptLast", {}), st.setdefault("grpLast", {})
+    tbu, tbl, tba = st.setdefault("tbUse", {}), st.setdefault("tbLast", {}), st.setdefault("tbAsked", {})
+    hist = st.setdefault("hist", [])
+    for q in qs:
+        ans = q["options"][q["answer"]][:60]
+        line = f"{q['topic']} → {ans}"
+        if q.get("srcKid"):
+            s = q["srcKid"]; pu[s] = pu.get(s, 0) + 1; plast[s] = today
+            pask[s] = (pask.get(s, []) + [line])[-6:]
+        t = q.get("tid")
+        if t and t in PT:
+            ptu[t] = ptu.get(t, 0) + 1; ptl[t] = today; grp[PT[t]["grp"]] = today
+        elif t:
+            tbu[t] = tbu.get(t, 0) + 1; tbl[t] = today
+            tba[t] = (tba.get(t, []) + [line])[-12:]
+        hist.append({"d": today, "ch": q["ch"], "t": q["topic"], "a": ans})
+    cut = (datetime.date.fromisoformat(today) - datetime.timedelta(days=60)).isoformat()
+    st["hist"] = [h for h in hist if h.get("d", "") >= cut][-6000:]
+    st["topics"] = (st.get("topics", []) + [{"date": today, "ch": q["ch"], "topic": q["topic"]} for q in qs])[-1500:]
 
 
 if __name__ == "__main__":
