@@ -34,6 +34,8 @@ def normalize(o, allowed):
     opts = [clean_opt(x) for x in (o.get("options") or [])]
     if len(opts) != 5 or any(not x for x in opts) or len({x.lower() for x in opts}) != 5:
         return None
+    if max(len(x) for x in opts) > 45:   # current exam style: short answer options only
+        return None
     a = o.get("answer")
     if isinstance(a, str):
         t = a.strip()
@@ -94,7 +96,7 @@ def main():
     plan = json.loads((W / "plan.json").read_text())
     Klist = load_src("kichul"); K = {k["id"]: k for k in Klist}
     meta = load_src("meta")
-    KB = load_src("kb")["ch"]
+    KBF = load_src("kb"); KB = KBF["ch"]
     st = load_src("state", {}) or {}
     TB = load_src("textbook")
     tbmap = {w["id"]: w for v in TB["ch"].values() for w in v} if TB else {}
@@ -102,8 +104,10 @@ def main():
     import plan as PL
     CH = meta["chapters"]
     chname = lambda c: CH.get(str(c), f"Chapter {c}")
-    ctx = PL.build_ctx(KB, tbmap, st, Klist, chname, random.Random("refill-ex:" + plan["id"]))
+    ctx = PL.build_ctx(KB, tbmap, st, Klist, chname, random.Random("refill-ex:" + plan["id"]), KBF.get("fz"))
+    FZ = ctx["FZ"]
     PT = ctx["PT"]
+    FIGS = {f["id"]: f for f in (load_src("figs") or [])}
     hist = st.get("hist", [])
     today = plan["date"]
     qs, seen, report = [], set(), []
@@ -132,6 +136,15 @@ def main():
                     hit = anchor_of(q["basis"], [rel]) if rel else None
                     if hit: q["kbRef"] = [kb_label(hit)]
                     else: q["basis"] = ""
+            elif b["kind"] == "tphoto":
+                sid = str(o.get("src") or "")
+                if sid not in b["srcs"] or sid not in FIGS or o.get("skip") or any(q.get("figId") == sid for q in got):
+                    continue
+                f = FIGS[sid]
+                q = normalize({**o, "ch": f["ch"], "figures": []}, [f["ch"]])
+                if q:
+                    q["type"] = "photo"; q["imgs"] = f["files"][:4]; q["figId"] = sid
+                    q["kbRef"] = [f"피부과학 7판 p.{f['page']} 그림 {f['fig']}"]
             else:
                 q = normalize({**o, "figures": []}, b["chs"])
                 if q and re.search(r"사진|그림", q["stem"]):
@@ -142,12 +155,15 @@ def main():
                     if not t or tid in used_tids:
                         q = None; drop["target"] += 1
                     else:
-                        src = [kbmap[PT[tid]["chunk"]]] if t["kind"] == "pt" and tid in PT else ([{"id": tid, "text": tbmap[tid]["text"]}] if tid in tbmap else [])
+                        if t["kind"] == "pt" and tid in PT: src = [kbmap[PT[tid]["chunk"]]]
+                        elif t["kind"] == "fz" and tid in FZ: src = [{"id": tid, "text": FZ[tid]["text"]}]
+                        else: src = [{"id": tid, "text": tbmap[tid]["text"]}] if tid in tbmap else []
                         if not anchor_of(q["basis"], src):   # answer not traceable to the target it claims
                             q = None; drop["anchor"] += 1
                         else:
                             q["tid"] = tid; q["ch"] = t["ch"]
-                            q["kbRef"] = [kb_label(kbmap[PT[tid]["chunk"]])] if t["kind"] == "pt" else [tb_label(tbmap[tid])]
+                            q["kbRef"] = ([kb_label(kbmap[PT[tid]["chunk"]])] if t["kind"] == "pt" else
+                                          [f"Fitzpatrick 표 · {FZ[tid]['head']}"] if t["kind"] == "fz" else [tb_label(tbmap[tid])])
                 if q and b["kind"] == "novel":
                     q["novel"] = True
             if q and (is_repeat(q, hist, today) or is_repeat(q, [{"ch": x["ch"], "t": x["topic"], "a": x["options"][x["answer"]], "d": today} for x in qs + got], today)):
@@ -183,7 +199,7 @@ def main():
             for p in parts:
                 c = str(p["ch"])
                 tg += pick_targets(p["ch"], p["n"], "regular", ctx["P"].get(c, []), TBW.get(c, []), st, today,
-                                   random.Random(f"refill:{plan['id']}:{c}"), taken, kterms)
+                                   random.Random(f"refill:{plan['id']}:{c}"), taken, kterms, ctx["FZK"].get(c, []))
             ctx["hist"] = hist + [{"ch": q["ch"], "t": q["topic"], "a": q["options"][q["answer"]], "d": today} for q in qs]
             intro = "\n이전 묶음에서 일부 문항이 빠져서 보충하는 묶음이다.\n"
             prompt = target_prompt(tg, ctx, "regular", intro)
@@ -213,10 +229,15 @@ def main():
     d = datetime.date.fromisoformat(plan["date"])
     sset = plan["id"].rsplit("-", 1)[-1] if plan["id"].count("-") == 3 else ""
     title = f"{d.month}월 {d.day}일 ({'월화수목금토일'[d.weekday()]})" + (f" {sset}회차" if sset else "")
-    counts = {"photo": sum(1 for q in qs if q.get("srcKid")), "novel": sum(1 for q in qs if q.get("novel"))}
+    counts = {"photo": sum(1 for q in qs if q.get("srcKid") or q.get("figId")), "novel": sum(1 for q in qs if q.get("novel"))}
     counts["text"] = len(qs) - counts["photo"] - counts["novel"]
     exam = {"v": 1, "id": plan["id"], "date": plan["date"], "title": title, "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
             "plan": plan["plan"], "counts": counts, "questions": qs}
+    for q in qs:   # textbook photos are published (with the site key) only when a question uses them
+        for nm in (q.get("imgs") or []) if q.get("figId") else []:
+            dst = ROOT / "data" / "img" / (nm + ".enc")
+            if not dst.exists():
+                dst.write_bytes(C.enc_bytes(C.dec_bytes((ROOT / "secure" / "figs" / (nm + ".enc")).read_bytes())))
     C.enc_json(exam, ROOT / "data" / "exams" / f"{plan['id']}.enc")
     idx["exams"] = [e for e in idx["exams"] if e["id"] != plan["id"]] + [{"id": plan["id"], "date": plan["date"], "n": len(qs), "file": f"data/exams/{plan['id']}.enc"}]
     idx["exams"].sort(key=lambda e: e["id"], reverse=True)
@@ -239,9 +260,16 @@ def record(st, qs, PT, today):
         if q.get("srcKid"):
             s = q["srcKid"]; pu[s] = pu.get(s, 0) + 1; plast[s] = today
             pask[s] = (pask.get(s, []) + [line])[-6:]
+        if q.get("figId"):
+            fu, fl, fa = st.setdefault("figUse", {}), st.setdefault("figLast", {}), st.setdefault("figAsk", {})
+            s = q["figId"]; fu[s] = fu.get(s, 0) + 1; fl[s] = today
+            fa[s] = (fa.get(s, []) + [line])[-6:]
         t = q.get("tid")
         if t and t in PT:
             ptu[t] = ptu.get(t, 0) + 1; ptl[t] = today; grp[PT[t]["grp"]] = today
+        elif t and re.fullmatch(r"\d+z\d+", t):
+            fu, fl, fa = st.setdefault("fzUse", {}), st.setdefault("fzLast", {}), st.setdefault("fzAsked", {})
+            fu[t] = fu.get(t, 0) + 1; fl[t] = today; fa[t] = (fa.get(t, []) + [line])[-12:]
         elif t:
             tbu[t] = tbu.get(t, 0) + 1; tbl[t] = today
             tba[t] = (tba.get(t, []) + [line])[-12:]

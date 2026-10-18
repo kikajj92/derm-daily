@@ -13,7 +13,7 @@ import datetime, math, re
 KMARK = re.compile(r"\((?:\d{2} ?)?(?:기출|풀링|전평)|(?:기출|풀링|전평) ?\d{2}")
 EMPH = re.compile(r"【[^】]{2,}】|\*\*[^*]{2,}\*\*")
 CORE = re.compile(r"원인|유전자|돌연변이|mutation|gene|단백|항원|antigen|조직|병리|면역형광|DIF|IIF|염색|치료|1차|first|금기|동반|합병|진단|검사|기준|criteria|m/c|가장 흔|특징|호발|pathogno", re.I)
-PT_COOL, TB_COOL, GRP_COOL = 21, 14, 3   # days
+PT_COOL, TB_COOL, GRP_COOL, FZ_COOL = 21, 14, 3, 14   # days
 
 
 def _plain(s):
@@ -97,7 +97,7 @@ def coverage(text, terms):
     return len(w & terms) / len(w) if w else 0.0
 
 
-def pick_targets(ch, n, mode, P, TBW, st, today, rng, taken, kterms):
+def pick_targets(ch, n, mode, P, TBW, st, today, rng, taken, kterms, FZ=()):
     """Choose n targets for chapter ch. mode: 'regular' (core, emphasised points) or 'novel' (little-tested).
     P: points of this chapter, TBW: textbook windows of this chapter, st: state, taken: ids already chosen today."""
     ptLast, ptUse = st.get("ptLast", {}), st.get("ptUse", {})
@@ -111,9 +111,16 @@ def pick_targets(ch, n, mode, P, TBW, st, today, rng, taken, kterms):
     frac_tb = 0.5 if mode == "regular" else 0.7
     if len(okP) < 4 * n:
         frac_tb = max(frac_tb, 0.7)
-    n_tb = min(len(okT), round(n * frac_tb)) if TBW else 0
-    n_pt = min(len(okP), n - n_tb)
-    n_tb = min(len(okT), n - n_pt)
+    # Fitzpatrick tables (comparison tables are a frequent exam source) where the notes have them
+    fzLast, fzUse = st.get("fzLast", {}), st.get("fzUse", {})
+    okF = [z for z in FZ if z["id"] not in taken and _days(fzLast.get(z["id"]), today) >= FZ_COOL]
+    n_fz = min(len(okF), max(1, round(n * 0.2)) if n >= 3 else (1 if okF and rng.random() < 0.35 else 0))
+    n_tb = min(len(okT), round((n - n_fz) * frac_tb)) if TBW else 0
+    n_pt = min(len(okP), n - n_fz - n_tb)
+    n_tb = min(len(okT), n - n_fz - n_pt)
+    out = []
+    for z in _pick(okF, n_fz, rng, lambda z: 1 / (1 + fzUse.get(z["id"], 0)) ** 3):
+        out.append({"kind": "fz", "id": z["id"], "ch": ch}); taken.add(z["id"])
 
     def wp(p):
         w = p["imp"] / (1 + ptUse.get(p["id"], 0)) ** 2
@@ -123,7 +130,7 @@ def pick_targets(ch, n, mode, P, TBW, st, today, rng, taken, kterms):
             w *= (1 - coverage(p["line"] + " " + p["ctx"], kterms)) ** 2 + 0.05
         return w
 
-    out, grps = [], set()
+    grps = set()
     for _ in range(n_pt):
         pool = [p for p in okP if p["grp"] not in grps and p["id"] not in taken] or [p for p in okP if p["id"] not in taken]
         got = _pick(pool, 1, rng, wp)
@@ -227,6 +234,14 @@ def target_prompt(targets, ctx, mode, intro=""):
             if t.get("alt") and t["alt"] in PT:
                 q = PT[t["alt"]]
                 b += f"\n\n예비 포인트 tid={q['id']} (지정 포인트가 곁가지라 핵심을 묻는 좋은 문항이 안 될 때만): {q['ctx']} — {q['line'][:200]}"
+        elif t["kind"] == "fz":
+            z = ctx["FZ"][t["id"]]
+            prev = st.get("fzAsked", {}).get(z["id"], [])
+            b = (f"[포인트 {i}] tid={z['id']} · Ch {t['ch']} {ctx['chname'](t['ch'])} · Fitzpatrick 표\n"
+                 f"아래 Fitzpatrick 표(수험생 Fitz 보충 노트)에서 핵심 비교 사실 하나를 정답으로 삼는다. 같은 표의 다른 행·열(형제 질환·다른 약)이 그럴듯한 오답이 되게 한다. "
+                 f"'(일반 지식)'·'집필 시점'·'[차이]' 표시가 있는 칸, 7판과 다를 수 있는 수치는 정답으로 쓰지 않는다."
+                 + (f"\n이 표로 이미 낸 문항(같은 사실은 피한다): " + " / ".join(prev[-8:]) if prev else "")
+                 + f"\n\n[Fitzpatrick 표 — {z['head']}]\n{z['text'][:2400]}")
         else:
             w = TBMAP[t["id"]]
             prev = asked.get(w["id"], [])
@@ -259,8 +274,8 @@ def target_prompt(targets, ctx, mode, intro=""):
 {RULES}
 
 [문항 유형 배분]
-- 증례형 약 {n_case}문항: 나이·성별·병력·경과와 피부 소견, 필요하면 조직검사 소견을 지문 안에 문장으로 서술하고, 진단 다음 단계(원인 유전자·조직·치료·합병증 등)를 묻는다. 진단명은 지문에 쓰지 않는다.
-- 나머지는 지식형: 포인트의 기전·유전자·약리·수치·예외를 직접 묻거나 "옳지 않은 것은?" 형으로 묻는다.
+- 짧은 증례형 약 {n_case}문항: 나이·성별·핵심 병력·검사 수치를 1–2문장으로 주고(피부·조직 소견을 길게 묘사하지 않는다), 치료 방향·경과·예후 인자·동반 질환·자가항체·검사 같은 다음 단계를 묻는다. 진단명이 꼭 필요하면 지문에 써도 되지만, 그때는 더 깊은 세부를 묻는다.
+- 나머지는 지식형: 포인트의 치료·약리·기전·유전자·수치·예외를 짧은 질문으로 직접 묻는다. 보기는 모두 단답형.
 {NO_PHOTO}
 
 {(chr(10) * 2).join(blocks)}
