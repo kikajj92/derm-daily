@@ -162,7 +162,7 @@ def main():
                             q = None; drop["anchor"] += 1
                         else:
                             q["tid"] = tid; q["ch"] = t["ch"]
-                            q["kbRef"] = ([kb_label(kbmap[PT[tid]["chunk"]])] if t["kind"] == "pt" else
+                            q["kbRef"] = ([f"정리본 Ch {PT[tid]['ch']} · {PT[tid]['grp'].split(':', 1)[1]}"] if t["kind"] == "pt" else
                                           [f"Fitzpatrick 표 · {FZ[tid]['head']}"] if t["kind"] == "fz" else [tb_label(tbmap[tid])])
                 if q and b["kind"] == "novel":
                     q["novel"] = True
