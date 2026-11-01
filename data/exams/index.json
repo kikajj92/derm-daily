@@ -37,6 +37,18 @@
    "file": "data/exams/u20-1.enc"
   },
   {
+   "id": "u18-1",
+   "kind": "unit",
+   "ch": 18,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "18장 결합조직질환",
+   "n": 52,
+   "photos": 16,
+   "file": "data/exams/u18-1.enc"
+  },
+  {
    "id": "u13-1",
    "kind": "unit",
    "ch": 13,
@@ -289,5 +301,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:17:01+00:00"
+ "updated": "2026-11-01T23:19:16+00:00"
 }
