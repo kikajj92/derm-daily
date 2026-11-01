@@ -20,7 +20,7 @@ LET = "가나다라마"
 
 
 def clean_opt(x):
-    return re.sub(r"^\s*(?:[가나다라마]|[1-5]|[①-⑤]|[A-Ea-e])\s*[\)\.]\s*", "", str(x or "")).strip()
+    return re.sub(r"^\s*(?:[가나다라마]|[1-5]|[①-⑤]|[A-Ea-e])\s*(?:\)|\.(?![\d.]))\s*", "", str(x or "")).strip()
 
 
 def nat_key(s):

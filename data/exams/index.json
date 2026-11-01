@@ -97,6 +97,30 @@
    "file": "data/exams/u11-1.enc"
   },
   {
+   "id": "u08-1",
+   "kind": "unit",
+   "ch": 8,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "8장 물리적 피부질환과 스포츠피부질환",
+   "n": 51,
+   "photos": 5,
+   "file": "data/exams/u08-1.enc"
+  },
+  {
+   "id": "u07-1",
+   "kind": "unit",
+   "ch": 7,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "7장 광의학",
+   "n": 43,
+   "photos": 7,
+   "file": "data/exams/u07-1.enc"
+  },
+  {
    "id": "u06-2",
    "kind": "unit",
    "ch": 6,
@@ -265,5 +289,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:12:22+00:00"
+ "updated": "2026-11-01T23:17:01+00:00"
 }
