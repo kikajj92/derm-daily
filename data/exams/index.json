@@ -85,6 +85,30 @@
    "file": "data/exams/u06-1.enc"
   },
   {
+   "id": "u04-2",
+   "kind": "unit",
+   "ch": 4,
+   "part": 2,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "4장 피부면역학 (2/2)",
+   "n": 28,
+   "photos": 2,
+   "file": "data/exams/u04-2.enc"
+  },
+  {
+   "id": "u04-1",
+   "kind": "unit",
+   "ch": 4,
+   "part": 1,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "4장 피부면역학 (1/2)",
+   "n": 29,
+   "photos": 0,
+   "file": "data/exams/u04-1.enc"
+  },
+  {
    "id": "2026-10-23-1",
    "date": "2026-10-23",
    "n": 100,
@@ -193,5 +217,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T22:58:54+00:00"
+ "updated": "2026-11-01T23:01:50+00:00"
 }
