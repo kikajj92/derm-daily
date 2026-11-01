@@ -1,6 +1,18 @@
 {
  "exams": [
   {
+   "id": "u22-1",
+   "kind": "unit",
+   "ch": 22,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "22장 신생아피부질환",
+   "n": 50,
+   "photos": 17,
+   "file": "data/exams/u22-1.enc"
+  },
+  {
    "id": "u21-1",
    "kind": "unit",
    "ch": 21,
@@ -253,5 +265,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:09:48+00:00"
+ "updated": "2026-11-01T23:12:22+00:00"
 }
