@@ -13,6 +13,30 @@
    "file": "data/exams/u13-1.enc"
   },
   {
+   "id": "u12-2",
+   "kind": "unit",
+   "ch": 12,
+   "part": 2,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "12장 구진인설질환 (2/2)",
+   "n": 28,
+   "photos": 11,
+   "file": "data/exams/u12-2.enc"
+  },
+  {
+   "id": "u12-1",
+   "kind": "unit",
+   "ch": 12,
+   "part": 1,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "12장 구진인설질환 (1/2)",
+   "n": 29,
+   "photos": 12,
+   "file": "data/exams/u12-1.enc"
+  },
+  {
    "id": "u06-2",
    "kind": "unit",
    "ch": 6,
@@ -145,5 +169,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T16:11:20+00:00"
+ "updated": "2026-11-01T22:58:04+00:00"
 }
