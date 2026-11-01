@@ -1,6 +1,18 @@
 {
  "exams": [
   {
+   "id": "u20-1",
+   "kind": "unit",
+   "ch": 20,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "20장 점막질환",
+   "n": 31,
+   "photos": 9,
+   "file": "data/exams/u20-1.enc"
+  },
+  {
    "id": "u13-1",
    "kind": "unit",
    "ch": 13,
@@ -229,5 +241,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:03:50+00:00"
+ "updated": "2026-11-01T23:04:20+00:00"
 }
