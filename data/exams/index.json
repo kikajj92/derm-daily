@@ -85,6 +85,18 @@
    "file": "data/exams/u06-1.enc"
   },
   {
+   "id": "u05-1",
+   "kind": "unit",
+   "ch": 5,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "5장 가려움증",
+   "n": 30,
+   "photos": 3,
+   "file": "data/exams/u05-1.enc"
+  },
+  {
    "id": "u04-2",
    "kind": "unit",
    "ch": 4,
@@ -217,5 +229,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:01:50+00:00"
+ "updated": "2026-11-01T23:03:50+00:00"
 }
