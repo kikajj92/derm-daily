@@ -37,6 +37,30 @@
    "file": "data/exams/u12-1.enc"
   },
   {
+   "id": "u11-2",
+   "kind": "unit",
+   "ch": 11,
+   "part": 2,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "11장 약물발진, 홍반 및 두드러기 (2/2)",
+   "n": 30,
+   "photos": 4,
+   "file": "data/exams/u11-2.enc"
+  },
+  {
+   "id": "u11-1",
+   "kind": "unit",
+   "ch": 11,
+   "part": 1,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "11장 약물발진, 홍반 및 두드러기 (1/2)",
+   "n": 30,
+   "photos": 8,
+   "file": "data/exams/u11-1.enc"
+  },
+  {
    "id": "u06-2",
    "kind": "unit",
    "ch": 6,
@@ -169,5 +193,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T22:58:04+00:00"
+ "updated": "2026-11-01T22:58:54+00:00"
 }
