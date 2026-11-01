@@ -19,6 +19,8 @@ ROOT = C.ROOT
 W = ROOT / "work"
 UW = W / "unit"
 MAXQ, MAXIMG = 10, 8
+# 기출 photos whose extracted images do not match the question (checked by eye)
+BAD_PHOTO = {"2024-22"}
 
 UNIT_RULES = """[단원별 문제집 규칙 — 위 규칙과 다르면 이 규칙이 우선]
 - 이 문제집은 「피부과학」 7판 한 단원의 질환이 모두 한 번씩은 나오도록 만든다. 문항마다 지정된 [단위]와 [묻는 것]을 지킨다.
@@ -193,6 +195,8 @@ def collect(ch, X, reg):
             if not q:
                 continue
             ph = b["photos"].get(slot)
+            if o.get("nophoto") or ph in BAD_PHOTO:
+                ph = None  # writer/reviewer judged the photo not to show this unit's disease
             if ph and ph in X["FIGS"]:
                 f = X["FIGS"][ph]; q.update(type="photo", imgs=f["files"][:4], figId=ph, kbRef=[f"피부과학 7판 p.{f['page']} 그림 {f['fig']}"])
             elif ph and ph in X["K"]:
