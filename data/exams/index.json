@@ -37,6 +37,18 @@
    "file": "data/exams/u20-1.enc"
   },
   {
+   "id": "u19-1",
+   "kind": "unit",
+   "ch": 19,
+   "part": 1,
+   "parts": 1,
+   "date": "2026-11-02",
+   "title": "19장 피하지방질환",
+   "n": 31,
+   "photos": 2,
+   "file": "data/exams/u19-1.enc"
+  },
+  {
    "id": "u18-1",
    "kind": "unit",
    "ch": 18,
@@ -301,5 +313,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T23:19:16+00:00"
+ "updated": "2026-11-01T23:21:58+00:00"
 }
