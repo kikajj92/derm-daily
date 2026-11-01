@@ -201,7 +201,7 @@ def collect(ch, X, reg):
                 f = X["FIGS"][ph]; q.update(type="photo", imgs=f["files"][:4], figId=ph, kbRef=[f"피부과학 7판 p.{f['page']} 그림 {f['fig']}"])
             elif ph and ph in X["K"]:
                 q.update(type="photo", imgs=X["K"][ph]["qi"][:4], srcKid=ph)
-            elif re.search(r"사진|그림", q["stem"]):
+            elif re.search(r"사진|그림", re.sub(r"(방사선|X선|엑스선|흉부|CT|MRI)\s*사진", "", q["stem"])):
                 continue
             else:
                 q["type"] = "case"

@@ -13,6 +13,30 @@
    "file": "data/exams/u13-1.enc"
   },
   {
+   "id": "u06-2",
+   "kind": "unit",
+   "ch": 6,
+   "part": 2,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "6장 유전피부질환 (2/2)",
+   "n": 40,
+   "photos": 9,
+   "file": "data/exams/u06-2.enc"
+  },
+  {
+   "id": "u06-1",
+   "kind": "unit",
+   "ch": 6,
+   "part": 1,
+   "parts": 2,
+   "date": "2026-11-02",
+   "title": "6장 유전피부질환 (1/2)",
+   "n": 40,
+   "photos": 10,
+   "file": "data/exams/u06-1.enc"
+  },
+  {
    "id": "2026-10-23-1",
    "date": "2026-10-23",
    "n": 100,
@@ -121,5 +145,5 @@
    "file": "data/exams/2026-10-09.enc"
   }
  ],
- "updated": "2026-11-01T16:02:09+00:00"
+ "updated": "2026-11-01T16:11:20+00:00"
 }
