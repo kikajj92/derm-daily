@@ -331,7 +331,7 @@ body{font-feature-settings:"ss06" 1;letter-spacing:-0.005em}
 a.btn{text-decoration:none;color:inherit}
 html{-webkit-text-size-adjust:100%}
 body{padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (max-width: 640px){.tabs{grid-template-columns:repeat(3,1fr)}}
+@media (max-width: 640px){.tabs{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
@@ -352,7 +352,7 @@ const dowOf = s => { const [y, m, d] = s.split('-').map(Number); return '일월�
 const fmtDate = s => { const [y, m, d] = s.split('-').map(Number); return `${y}. ${m}. ${d}. (${dowOf(s)})`; };
 const fmtTime = sec => { sec = Math.max(0, Math.round(sec)); return pad(Math.floor(sec / 60)) + ':' + pad(sec % 60); };
 const clone = o => JSON.parse(JSON.stringify(o));
-const examTitle = e => { const [y, m, d] = e.date.split('-').map(Number); const k = (e.id.match(/-(\d)$/) || [])[1]; return `${m}월 ${d}일 (${dowOf(e.date)})${k ? ' ' + k + '회차' : ''}`; };
+const examTitle = e => { if (e.title) return e.title; const [y, m, d] = e.date.split('-').map(Number); const k = (e.id.match(/-(\d)$/) || [])[1]; return `${m}월 ${d}일 (${dowOf(e.date)})${k ? ' ' + k + '회차' : ''}`; };
 
 /* ---------- local storage (records live on this device) ---------- */
 const LS = {
@@ -443,13 +443,13 @@ function render() {
   }
 }
 function renderTop() {
-  const tabs = [['today', '오늘'], ['notes', '오답노트'], ['settings', '설정']];
+  const tabs = [['today', '오늘'], ['units', '단원별'], ['notes', '오답노트'], ['settings', '설정']];
   return `<header class="top"><div class="top-in">
     <div class="brand"><i>1</i><b>피부과 1차</b><span>데일리 모의고사</span></div>
     <nav class="tabs" aria-label="메뉴">${tabs.map(([k, l]) => `<button class="tab" data-act="tab" data-tab="${k}" ${S.tab === k && !S.view ? 'aria-current="page"' : ''}>${l}${k === 'notes' && S.notes.length ? ` <span class="faint mono">${S.notes.length}</span>` : ''}</button>`).join('')}</nav>
   </div></header>`;
 }
-function renderTab() { return S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : renderToday(); }
+function renderTab() { return S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : S.tab === 'units' ? renderUnits() : renderToday(); }
 
 /* ---------- lock screen ---------- */
 function renderLock() {
@@ -491,7 +491,7 @@ function examCard(e, big) {
 }
 function renderToday() {
   if (!S.index) return `<div class="empty">회차 목록을 불러오는 중…</div>`;
-  const t = todayStr(); const list = S.index.exams || [];
+  const t = todayStr(); const list = (S.index.exams || []).filter(e => e.kind !== 'unit');
   const todays = list.filter(e => e.date === t);
   const latest = list[0];
   const done = allRecs().filter(r => r.status === 'done').sort((a, b) => a.submittedAt - b.submittedAt);
@@ -514,6 +514,24 @@ function renderToday() {
     <div><div class="sec-h"><h2>모든 회차</h2></div><div class="hist">${list.map(e => examCard(e, false)).join('') || '<div class="empty">아직 올라온 회차가 없어요.</div>'}</div></div>
     <div><div class="sec-h"><h2>단원별 누적 정답률</h2><span class="note">낮은 순</span></div>${renderAcc()}</div>
   </section>`;
+}
+/* ---------- chapter sets ---------- */
+function renderUnits() {
+  if (!S.index) return `<div class="empty">목록을 불러오는 중…</div>`;
+  const units = (S.index.exams || []).filter(e => e.kind === 'unit');
+  const by = {}; for (const e of units) (by[e.ch] ||= []).push(e);
+  const total = units.reduce((a, e) => a + e.n, 0);
+  const doneN = units.filter(e => statusOf(e) === 'done').length;
+  const rows = Array.from({ length: 28 }, (_, i) => i + 1).map(c => {
+    const parts = (by[c] || []).sort((a, b) => (a.part || 1) - (b.part || 1));
+    const n = parts.reduce((a, e) => a + e.n, 0), ph = parts.reduce((a, e) => a + (e.photos || 0), 0);
+    const head = `<div class="sec-h" style="margin:0"><h2 style="font-size:16px"><span class="mono faint">${pad(c)}</span> ${esc(chName(c))}</h2><span class="note">${parts.length ? `${n}문항${ph ? ' · 사진 ' + ph : ''}` : '준비 중'}</span></div>`;
+    return `<div class="unit-ch" style="display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--rule)">${head}${parts.map(e => examCard(e, false)).join('')}</div>`;
+  }).join('');
+  return `<section class="card" style="display:grid;gap:6px"><h1 class="today-title" style="margin:0">단원별 문제집</h1>
+    <p class="muted" style="margin:0">피부과학 7판 단원마다 그 단원의 질환이 한 번씩은 나오도록 만든 증례 문제예요. 큰 단원은 50문항 안팎으로 나눴어요.</p>
+    <p class="note" style="margin:0">${units.length ? `${units.length}개 세트 · ${total}문항 · 끝낸 세트 ${doneN}` : '단원별 세트를 만드는 중이에요. 끝난 단원부터 올라와요.'}</p></section>
+  <section class="card list" style="margin-top:12px">${rows}</section>`;
 }
 function spark(arr) {
   if (arr.length < 2) return `<p class="note">두 회차 이상 풀면 점수 추이가 그려집니다.</p>`;
