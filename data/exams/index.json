@@ -7,7 +7,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "22장 신생아피부질환",
+   "title": "22장",
    "n": 50,
    "photos": 17,
    "file": "data/exams/u22-1.enc"
@@ -19,7 +19,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "21장 임신피부질환",
+   "title": "21장",
    "n": 30,
    "photos": 0,
    "file": "data/exams/u21-1.enc"
@@ -31,7 +31,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "20장 점막질환",
+   "title": "20장",
    "n": 31,
    "photos": 9,
    "file": "data/exams/u20-1.enc"
@@ -43,7 +43,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "19장 피하지방질환",
+   "title": "19장",
    "n": 31,
    "photos": 2,
    "file": "data/exams/u19-1.enc"
@@ -55,7 +55,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "18장 결합조직질환",
+   "title": "18장",
    "n": 52,
    "photos": 16,
    "file": "data/exams/u18-1.enc"
@@ -67,7 +67,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "13장 수포질환",
+   "title": "13장",
    "n": 45,
    "photos": 18,
    "file": "data/exams/u13-1.enc"
@@ -79,7 +79,7 @@
    "part": 2,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "12장 구진인설질환 (2/2)",
+   "title": "12장 (2/2)",
    "n": 28,
    "photos": 11,
    "file": "data/exams/u12-2.enc"
@@ -91,7 +91,7 @@
    "part": 1,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "12장 구진인설질환 (1/2)",
+   "title": "12장 (1/2)",
    "n": 29,
    "photos": 12,
    "file": "data/exams/u12-1.enc"
@@ -103,7 +103,7 @@
    "part": 2,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "11장 약물발진, 홍반 및 두드러기 (2/2)",
+   "title": "11장 (2/2)",
    "n": 30,
    "photos": 4,
    "file": "data/exams/u11-2.enc"
@@ -115,7 +115,7 @@
    "part": 1,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "11장 약물발진, 홍반 및 두드러기 (1/2)",
+   "title": "11장 (1/2)",
    "n": 30,
    "photos": 8,
    "file": "data/exams/u11-1.enc"
@@ -127,7 +127,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "8장 물리적 피부질환과 스포츠피부질환",
+   "title": "8장",
    "n": 51,
    "photos": 5,
    "file": "data/exams/u08-1.enc"
@@ -139,7 +139,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "7장 광의학",
+   "title": "7장",
    "n": 43,
    "photos": 7,
    "file": "data/exams/u07-1.enc"
@@ -151,7 +151,7 @@
    "part": 2,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "6장 유전피부질환 (2/2)",
+   "title": "6장 (2/2)",
    "n": 40,
    "photos": 9,
    "file": "data/exams/u06-2.enc"
@@ -163,7 +163,7 @@
    "part": 1,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "6장 유전피부질환 (1/2)",
+   "title": "6장 (1/2)",
    "n": 40,
    "photos": 10,
    "file": "data/exams/u06-1.enc"
@@ -175,7 +175,7 @@
    "part": 1,
    "parts": 1,
    "date": "2026-11-02",
-   "title": "5장 가려움증",
+   "title": "5장",
    "n": 30,
    "photos": 3,
    "file": "data/exams/u05-1.enc"
@@ -187,7 +187,7 @@
    "part": 2,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "4장 피부면역학 (2/2)",
+   "title": "4장 (2/2)",
    "n": 28,
    "photos": 2,
    "file": "data/exams/u04-2.enc"
@@ -199,7 +199,7 @@
    "part": 1,
    "parts": 2,
    "date": "2026-11-02",
-   "title": "4장 피부면역학 (1/2)",
+   "title": "4장 (1/2)",
    "n": 29,
    "photos": 0,
    "file": "data/exams/u04-1.enc"

@@ -255,7 +255,7 @@ def publish(plan_dir, ch):
                 if not dst.exists():
                     dst.write_bytes(C.enc_bytes(C.dec_bytes((ROOT / "secure" / "figs" / (nm + ".enc")).read_bytes())))
         eid = f"u{ch:02d}-{pi + 1}"
-        title = f"{ch}장 {name}" + (f" ({pi + 1}/{parts})" if parts > 1 else "")
+        title = f"{ch}장" + (f" ({pi + 1}/{parts})" if parts > 1 else "")
         counts = {"photo": sum(1 for q in part if q.get("imgs")), "text": sum(1 for q in part if not q.get("imgs")), "novel": 0}
         exam = {"v": 1, "id": eid, "kind": "unit", "date": today, "title": title, "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
                 "plan": {str(ch): len(part)}, "counts": counts, "questions": part}
