@@ -288,7 +288,7 @@ input.num{width:84px;padding:7px 10px;border-radius:8px;border:1px solid var(--r
   .opt{min-height:50px}
 }
 @media (max-width: 640px){
-  .tabs{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:40;background:var(--sheet);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow:visible}
+  .tabs{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:40;background:var(--sheet);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(6,1fr);gap:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow:visible}
   .tab{padding:13px 4px;border-bottom:0;border-top:2px solid transparent;font-size:13.5px;text-align:center}
   .tab[aria-current="page"]{border-top-color:var(--omr);border-bottom-color:transparent}
   .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
@@ -331,10 +331,10 @@ body{font-feature-settings:"ss06" 1;letter-spacing:-0.005em}
 a.btn{text-decoration:none;color:inherit}
 html{-webkit-text-size-adjust:100%}
 body{padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (max-width: 640px){.tabs{grid-template-columns:repeat(5,1fr)}.tab{font-size:12.5px;padding-inline:2px}}
+@media (max-width: 640px){.tabs{grid-template-columns:repeat(6,1fr)}.tab{font-size:12px;padding-inline:1px;letter-spacing:-.02em}}
 
 /* At-a-glance 카드노트 */
-.ag-bar{display:grid;gap:8px;margin-top:12px}
+.ag-bar{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:12px}
 .ag-in{flex:1 1 220px;min-width:0;border:1px solid var(--rule);background:var(--sheet);border-radius:8px;padding:9px 12px;font-size:15px}
 .ag-sel{flex:1 1 180px;min-width:0;max-width:340px;border:1px solid var(--rule);background:var(--sheet);border-radius:8px;padding:9px 10px;font-size:14px}
 .ag-stat{font-size:13px;color:var(--ink-2);margin-left:auto}
@@ -373,6 +373,59 @@ body{padding-bottom:env(safe-area-inset-bottom,0px)}
 .ag-deck .ag-back{padding:14px 22px 16px}
 .ag-deck .ag-pts li{font-size:15px}
 .ag-ctl{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;width:100%;max-width:640px}
+
+/* 증례 카드 */
+.cs-chips{gap:6px}
+.cs-chips .chip b{font-family:var(--f-mono);font-size:12px}
+.cs-chips .chip .faint{font-size:11px}
+.cs-chips .chip[aria-pressed="true"] .faint{color:var(--sheet);opacity:.7}
+.cs-dots{display:flex;flex-wrap:wrap;gap:4px}
+.cs-dot{width:12px;height:12px;border-radius:3px;border:1px solid var(--rule);background:var(--sheet);padding:0}
+.cs-dot.k{background:var(--ok);border-color:var(--ok)}
+.cs-dot.u{background:var(--omr);border-color:var(--omr)}
+.cs-dot.cur{outline:2px solid var(--ink);outline-offset:1px}
+.cs-card{overflow:hidden;min-width:0}
+.cs-slab{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--rule-2);padding:8px 16px;border-bottom:1px dashed var(--rule);font-size:12.5px;color:var(--ink-2);min-width:0}
+.cs-slab .sec{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-slab .no{font-size:12px;color:var(--omr);white-space:nowrap}
+.cs-st{font-size:11px;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.cs-st.k{background:var(--ok-soft);color:var(--ok)} .cs-st.u{background:var(--omr-soft);color:var(--omr)}
+.cs-body{padding:18px 20px 16px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.cs-stem{margin:0;font-size:16px;line-height:1.75;max-width:68ch;word-break:keep-all;overflow-wrap:anywhere}
+.cs-cluefront{margin:0;font-size:19px;line-height:1.55;font-weight:500;text-wrap:balance}
+.cs-q{margin:0;font-weight:600;color:var(--omr);display:flex;gap:8px}
+.cs-reveal{justify-self:start}
+.cs-back{border-top:1px solid var(--rule);padding:16px 20px 18px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.cs-lbl{font-size:11.5px;letter-spacing:.06em;color:var(--ink-3);font-weight:600;margin:0 0 6px}
+.cs-ans{margin:0;font-family:var(--f-serif);font-size:20px;font-weight:700;line-height:1.45;text-wrap:balance}
+.cs-clues{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cs-clues li{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:4px 10px;align-items:start;font-size:14.5px;padding-bottom:8px;border-bottom:1px solid var(--rule-2);word-break:keep-all;overflow-wrap:anywhere}
+.cs-clues li:last-child{border-bottom:0;padding-bottom:0}
+.cs-clues .from{color:var(--ink-2)} .cs-clues .arr{color:var(--ink-3)} .cs-clues .to{font-weight:500}
+.cs-clues li.one{grid-template-columns:minmax(0,1fr)}
+.cs-rowhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cs-link{border:0;background:none;color:var(--nov);font-size:13px;padding:0}
+.cs-fq{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cs-fq button{width:100%;text-align:left;border:1px solid var(--rule);background:var(--paper);border-radius:8px;padding:10px 12px;display:grid;gap:6px;word-break:keep-all;overflow-wrap:anywhere}
+.cs-fq .qq{font-weight:500;display:flex;gap:8px}
+.cs-fq .qq::before{content:"Q";font-family:var(--f-mono);color:var(--nov);font-weight:600}
+.cs-fq .aa{font-size:14.5px;display:flex;gap:8px}
+.cs-fq .aa::before{content:"A";font-family:var(--f-mono);color:var(--ok);font-weight:600}
+.cs-fq .hint{font-size:12.5px;color:var(--ink-3)}
+.cs-trap{background:var(--omr-soft);border-radius:8px;padding:12px 14px;font-size:14.5px;word-break:keep-all;overflow-wrap:anywhere}
+.cs-trap .cs-lbl{color:var(--omr);margin-bottom:4px}
+.cs-cmp{border-left:3px solid var(--nov);padding:2px 0 2px 12px;font-size:14px;color:var(--ink-2);word-break:keep-all;overflow-wrap:anywhere}
+.cs-acts{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px}
+.cs-acts .again{background:var(--omr-soft);border-color:var(--omr-line);color:var(--omr)}
+.cs-acts .know{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.cs-acts .nav{color:var(--ink-2);font-weight:500}
+.cs-done{padding:26px 22px;display:grid;gap:12px;justify-items:start}
+.cs-h2{font-family:var(--f-serif);font-size:20px;letter-spacing:0;color:var(--ink)}
+@media (max-width:560px){
+  .cs-body{padding:16px} .cs-back{padding:16px}
+  .cs-clues li{grid-template-columns:minmax(0,1fr)} .cs-clues .arr{display:none} .cs-clues .to::before{content:"→ ";color:var(--ink-3)}
+  .cs-acts{grid-template-columns:1fr 1fr} .cs-acts .nav{order:2}
+}
 </style>
 </head>
 <body>
@@ -484,13 +537,13 @@ function render() {
   }
 }
 function renderTop() {
-  const tabs = [['today', '오늘'], ['units', '단원별'], ['cards', '카드노트'], ['notes', '오답노트'], ['settings', '설정']];
+  const tabs = [['today', '오늘'], ['units', '단원별'], ['cases', '증례'], ['cards', '카드노트'], ['notes', '오답노트'], ['settings', '설정']];
   return `<header class="top"><div class="top-in">
     <div class="brand"><i>1</i><b>피부과 1차</b><span>데일리 모의고사</span></div>
     <nav class="tabs" aria-label="메뉴">${tabs.map(([k, l]) => `<button class="tab" data-act="tab" data-tab="${k}" ${S.tab === k && !S.view ? 'aria-current="page"' : ''}>${l}${k === 'notes' && S.notes.length ? ` <span class="faint mono">${S.notes.length}</span>` : ''}</button>`).join('')}</nav>
   </div></header>`;
 }
-function renderTab() { return S.tab === 'cards' ? renderCards() : S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : S.tab === 'units' ? renderUnits() : renderToday(); }
+function renderTab() { return S.tab === 'cases' ? renderCases() : S.tab === 'cards' ? renderCards() : S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : S.tab === 'units' ? renderUnits() : renderToday(); }
 
 /* ---------- lock screen ---------- */
 function renderLock() {
@@ -773,7 +826,7 @@ function renderSettings() {
   </section>`;
 }
 function exportData() {
-  const data = { v: 1, at: new Date().toISOString(), settings: S.settings, notes: S.notes, recs: allRecs(), aag: [...AG.known] };
+  const data = { v: 1, at: new Date().toISOString(), settings: S.settings, notes: S.notes, recs: allRecs(), aag: [...AG.known], cases: CS.prog || LS.get('cases-prog', null) };
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
   a.download = `derm-daily-기록-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
 }
@@ -783,6 +836,7 @@ async function importData(file) {
     for (const r of d.recs) { const cur = recOf(r.id); if (!cur || (cur.status !== 'done' && r.status === 'done')) LS.set('rec:' + r.id, r); }
     const have = new Set(S.notes.map(n => n.id)); for (const n of d.notes || []) if (!have.has(n.id)) S.notes.push(n);
     if (Array.isArray(d.aag)) { d.aag.forEach(id => AG.known.add(id)); agSave(); }
+    if (d.cases && typeof d.cases === 'object') { CS.prog = Object.assign({}, CS.prog || LS.get('cases-prog', {}) || {}, d.cases); csSaveProg(); }
     LS.set('notes', S.notes); toast('기록을 가져왔어요.'); render();
   } catch { toast('기록 파일을 읽지 못했어요.'); }
 }
@@ -957,6 +1011,157 @@ let AGT = null;
 document.addEventListener('touchstart', e => { if (S.tab !== 'cards' || AG.view !== 'deck' || e.touches.length !== 1 || !e.target.closest('#ag-deck')) { AGT = null; return; } AGT = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; }, { passive: true });
 document.addEventListener('touchend', e => { if (!AGT) return; const t = e.changedTouches[0]; const dx = t.clientX - AGT.x, dy = t.clientY - AGT.y, dt = Date.now() - AGT.t; AGT = null; if (dt < 700 && Math.abs(dx) > 70 && Math.abs(dy) < 60) agStep(dx < 0 ? 1 : -1); }, { passive: true });
 
+/* ---------- 증례 카드 (7판 단원별 임상증례·단서 카드) ---------- */
+const CASES_V = '2026-11-05a';
+const CS = Object.assign({ ch: '', sec: 'all', mode: 'case', filter: 'all', shuffle: false, seed: 1, idx: 0 }, LS.get('cases-ui', {}),
+  { data: null, err: null, loading: false, revealed: false, openA: new Set(), showAllA: false, deck: [], prog: LS.get('cases-prog', null), confirmReset: false });
+const csSaveUI = () => LS.set('cases-ui', { ch: CS.ch, sec: CS.sec, mode: CS.mode, filter: CS.filter, shuffle: CS.shuffle, seed: CS.seed, idx: CS.idx });
+const csSaveProg = () => LS.set('cases-prog', CS.prog);
+async function loadCases() {
+  if (CS.data || CS.loading) return;
+  CS.loading = true; CS.err = null;
+  try {
+    const d = await fetchDec('data/cases.enc?v=' + CASES_V);
+    CS.data = d;
+    if (!CS.prog) { CS.prog = Object.assign({}, d.seed || {}); csSaveProg(); }
+    if (!d.chapters.some(c => c.no === CS.ch)) CS.ch = d.chapters[0].no;
+    csBuild();
+  } catch (e) { CS.err = '증례를 불러오지 못했어요 (' + (e && e.message || e) + ').'; }
+  CS.loading = false;
+  if (S.tab === 'cases' && !S.view) render();
+}
+const csChapter = () => CS.data.chapters.find(c => c.no === CS.ch) || CS.data.chapters[0];
+function csItems(ch, mode) {
+  const out = [];
+  for (const s of ch.sections) {
+    if (mode === 'case') for (const c of s.cases) out.push({ key: ch.no + ':' + c.id, kind: 'case', sec: s, c });
+    else (s.clues || []).forEach((p, i) => out.push({ key: ch.no + ':c' + s.no + '-' + (i + 1), kind: 'clue', sec: s, clue: p[0], dx: p[1], n: i + 1 }));
+  }
+  return out;
+}
+function csRng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 1e6) / 1e6; }; }
+function csBuild() {
+  let items = csItems(csChapter(), CS.mode);
+  if (CS.sec !== 'all') items = items.filter(it => it.sec.no === CS.sec);
+  if (CS.filter === 'u') items = items.filter(it => CS.prog[it.key] === 'u');
+  if (CS.filter === 'new') items = items.filter(it => !CS.prog[it.key]);
+  if (CS.shuffle) { const r = csRng(CS.seed); for (let i = items.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [items[i], items[j]] = [items[j], items[i]]; } }
+  CS.deck = items;
+  if (CS.idx > items.length) CS.idx = 0;
+}
+function csCounts(items) { let k = 0, u = 0; for (const it of items) { const s = CS.prog[it.key]; if (s === 'k') k++; else if (s === 'u') u++; } return { k, u, n: items.length - k - u, total: items.length }; }
+function csSplitArrow(s) { const i = s.lastIndexOf('→'); return i > 0 ? [s.slice(0, i).trim(), s.slice(i + 1).trim()] : [null, s]; }
+function csSplitDash(s) { const i = s.indexOf(' — '); return i > 0 ? [s.slice(0, i), s.slice(i + 3)] : [null, s]; }
+function csPill(key) { const st = CS.prog[key]; return st ? `<span class="cs-st ${st}">${st === 'k' ? '알아요' : '다시 볼 카드'}</span>` : ''; }
+function csBack(it) {
+  let h = '';
+  if (it.kind === 'clue') h += `<div><p class="cs-lbl">정답</p><p class="cs-ans">${esc(it.dx)}</p></div>`;
+  else {
+    const c = it.c;
+    h += `<div><p class="cs-lbl">정답</p><p class="cs-ans">${esc(c.a)}</p></div>`;
+    if (c.c && c.c.length) h += `<div><p class="cs-lbl">단서 읽기</p><ul class="cs-clues">${c.c.map(s => { const [a, b] = csSplitArrow(s); return a ? `<li><span class="from">${esc(a)}</span><span class="arr">→</span><span class="to">${esc(b)}</span></li>` : `<li class="one"><span class="to">${esc(b)}</span></li>`; }).join('')}</ul></div>`;
+    if (c.f && c.f.length) h += `<div><div class="cs-rowhead"><p class="cs-lbl">이어서 나올 문제</p><button class="cs-link" data-act="cs-allA">${CS.showAllA ? '답 가리기' : '답 모두 보기'}</button></div>
+      <ul class="cs-fq">${c.f.map((p, i) => { const open = CS.showAllA || CS.openA.has(i); return `<li><button data-act="cs-fq" data-i="${i}" aria-expanded="${open}"><span class="qq">${esc(p[0] || '이어서')}</span>${open ? `<span class="aa">${esc(p[1])}</span>` : '<span class="hint">눌러서 답 확인</span>'}</button></li>`; }).join('')}</ul></div>`;
+    if (c.t) { const [a, b] = csSplitDash(c.t); h += `<div class="cs-trap"><p class="cs-lbl">함정</p><div>${a ? `<strong>${esc(a)}</strong> — ` : ''}${esc(b)}</div></div>`; }
+    if (c.cmp) h += `<div class="cs-cmp"><p class="cs-lbl">비교</p>${esc(c.cmp)}</div>`;
+  }
+  h += `<div class="cs-acts"><button class="btn nav" data-act="cs-prev" aria-label="이전 카드">←</button><button class="btn again" data-act="cs-mark" data-v="u">다시 볼게요</button><button class="btn know" data-act="cs-mark" data-v="k">알아요</button><button class="btn nav" data-act="cs-next" aria-label="다음 카드">→</button></div>`;
+  return `<div class="cs-back">${h}</div>`;
+}
+function csStage() {
+  const D = CS.deck;
+  if (!D.length) return `<section class="card cs-done"><h2 class="cs-h2">${CS.filter === 'u' ? '다시 볼 카드가 없어요' : '남은 카드가 없어요'}</h2>
+    <p class="muted">${CS.filter === 'u' ? '카드를 넘기면서 ‘다시 볼게요’를 누르면 여기에 모여요.' : '이 묶음의 카드를 모두 한 번씩 봤어요.'}</p>
+    <div class="row"><button class="btn primary" data-act="cs-filter" data-v="all">전체 카드 보기</button></div></section>`;
+  if (CS.idx >= D.length) {
+    const c = csCounts(D);
+    return `<section class="card cs-done"><h2 class="cs-h2">이 묶음을 끝까지 봤어요</h2><p class="muted">알아요 ${c.k} · 다시 볼 카드 ${c.u} · 안 본 카드 ${c.n}</p>
+      <div class="row">${c.u ? `<button class="btn primary" data-act="cs-filter" data-v="u">다시 볼 카드만 보기 (${c.u})</button>` : ''}<button class="btn" data-act="cs-go" data-i="0">처음부터</button></div></section>`;
+  }
+  const it = D[CS.idx], ch = csChapter();
+  const front = it.kind === 'case'
+    ? `<p class="cs-stem">${esc(it.c.v)}</p><p class="cs-q"><span>→</span><span>${esc(it.c.q)}</span></p>`
+    : `<p class="cs-lbl">문제에 이런 단서가 나오면</p><p class="cs-cluefront">${esc(it.clue)}</p><p class="cs-q"><span>→</span><span>떠올릴 진단은?</span></p>`;
+  return `<article class="card cs-card" id="cs-card">
+    <div class="cs-slab"><span class="sec">Ch ${esc(ch.no)} · ${esc(it.sec.no)}. ${esc(it.sec.title)}</span>${csPill(it.key)}<span class="no mono">${it.kind === 'case' ? '증례 ' + esc(it.c.id) : '단서 ' + esc(it.sec.no) + '-' + it.n}</span></div>
+    <div class="cs-body">${front}${CS.revealed ? '' : '<button class="btn primary cs-reveal" data-act="cs-reveal">정답 보기</button>'}</div>
+    ${CS.revealed ? csBack(it) : ''}
+  </article>`;
+}
+function csDots() {
+  return CS.deck.map((it, i) => { const st = CS.prog[it.key] || ''; const lb = (it.kind === 'case' ? '증례 ' + it.c.id : '단서 ' + it.sec.no + '-' + it.n) + (st === 'k' ? ' · 알아요' : st === 'u' ? ' · 다시 볼 카드' : ' · 안 봄');
+    return `<button class="cs-dot ${st}${i === CS.idx ? ' cur' : ''}" data-act="cs-go" data-i="${i}" title="${esc(lb)}" aria-label="${esc(lb)}"></button>`; }).join('');
+}
+function renderCases() {
+  if (!CS.data) {
+    if (!CS.loading && !CS.err) setTimeout(loadCases, 0);
+    return `<section class="card" style="padding:22px;display:grid;gap:8px"><h1 class="today-title" style="margin:0">증례 카드</h1>
+      ${CS.err ? `<p class="muted" style="margin:0">${esc(CS.err)}</p><div><button class="btn" data-act="cs-retry">다시 불러오기</button></div>` : '<p class="muted" style="margin:0">증례를 불러오는 중…</p>'}</section>`;
+  }
+  const D = CS.data, ch = csChapter();
+  const scope = csItems(ch, CS.mode).filter(it => CS.sec === 'all' || it.sec.no === CS.sec);
+  const cnt = csCounts(scope);
+  const nCase = c => c.sections.reduce((a, s) => a + s.cases.length, 0);
+  return `<section class="card" style="padding:18px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px">
+    <div class="sec-h" style="margin:0"><h1 class="today-title" style="margin:0">증례 카드</h1><span class="note mono">알아요 ${cnt.k} · 다시 볼 ${cnt.u} · 안 봄 ${cnt.n}</span></div>
+    <div class="row cs-chips" role="group" aria-label="단원">${D.chapters.map(c => `<button class="chip" data-act="cs-ch" data-v="${esc(c.no)}" aria-pressed="${c.no === ch.no}"><b>${esc(c.no)}</b>${esc(c.short || c.title)}<span class="faint mono">${nCase(c)}</span></button>`).join('')}</div>
+    <p class="note" style="margin:0">Ch ${esc(ch.no)} ${esc(ch.title)}</p>
+    <div class="row">
+      <button class="chip" data-act="cs-mode" data-v="case" aria-pressed="${CS.mode === 'case'}">증례 카드</button>
+      <button class="chip" data-act="cs-mode" data-v="clue" aria-pressed="${CS.mode === 'clue'}">단서 카드</button>
+      <select class="ag-sel" id="cs-sec" aria-label="섹션"><option value="all">모든 섹션</option>${ch.sections.map(s => `<option value="${esc(s.no)}" ${CS.sec === s.no ? 'selected' : ''}>${esc(s.no)}. ${esc(s.title)} (${CS.mode === 'case' ? s.cases.length : (s.clues || []).length})</option>`).join('')}</select>
+    </div>
+    <div class="row">
+      <button class="chip" data-act="cs-filter" data-v="all" aria-pressed="${CS.filter === 'all'}">전체</button>
+      <button class="chip" data-act="cs-filter" data-v="u" aria-pressed="${CS.filter === 'u'}">다시 볼 카드</button>
+      <button class="chip" data-act="cs-filter" data-v="new" aria-pressed="${CS.filter === 'new'}">안 본 카드</button>
+      <button class="chip" data-act="cs-shuffle" aria-pressed="${CS.shuffle}">섞기</button>
+    </div>
+    <div class="cs-dots" aria-label="카드 위치">${csDots()}</div>
+  </section>
+  <div id="cs-stage" style="margin-top:12px">${csStage()}</div>
+  <div class="row note" style="justify-content:space-between;margin-top:10px"><span>정답 보기 후 ‘다시 볼게요’·‘알아요’로 표시해요. 좌우로 밀어 넘길 수 있어요.</span>
+    ${CS.confirmReset ? `<span class="row" style="gap:6px">Ch ${esc(ch.no)} 표시를 모두 지울까요? <button class="btn sm red" data-act="cs-reset-ok">지우기</button><button class="btn sm" data-act="cs-reset-no">취소</button></span>` : `<button class="btn sm ghost" data-act="cs-reset">Ch ${esc(ch.no)} 기록 지우기</button>`}</div>`;
+}
+function csRerender(scrollToCard) {
+  const st = $('#cs-stage');
+  if (!st) { render(); return; }
+  st.innerHTML = csStage();
+  const dots = document.querySelector('.cs-dots'); if (dots) dots.innerHTML = csDots();
+  csSaveUI();
+  if (scrollToCard) { const r = st.getBoundingClientRect(); if (r.top < 60) window.scrollTo({ top: window.scrollY + r.top - 70 }); }
+}
+function csGo(i) { if (!CS.deck.length) return; CS.idx = Math.max(0, Math.min(i, CS.deck.length)); CS.revealed = false; CS.openA.clear(); CS.showAllA = false; csRerender(true); }
+function csReset(keepIdx) { CS.idx = keepIdx ? CS.idx : 0; CS.revealed = false; CS.openA.clear(); CS.showAllA = false; csBuild(); csSaveUI(); render(); }
+const CS_ACT = {
+  'cs-retry'() { CS.err = null; render(); },
+  'cs-ch'(t) { CS.ch = t.dataset.v; CS.sec = 'all'; CS.confirmReset = false; csReset(); },
+  'cs-mode'(t) { if (CS.mode === t.dataset.v) return; CS.mode = t.dataset.v; CS.sec = 'all'; csReset(); },
+  'cs-filter'(t) { CS.filter = t.dataset.v; csReset(); },
+  'cs-shuffle'() { CS.shuffle = !CS.shuffle; CS.seed = (Date.now() % 2147483647) || 7; csReset(); },
+  'cs-reveal'() { if (CS.deck[CS.idx]) { CS.revealed = true; csRerender(); } },
+  'cs-go'(t) { csGo(Number(t.dataset.i)); },
+  'cs-next'() { csGo(CS.idx + 1); },
+  'cs-prev'() { csGo(CS.idx - 1); },
+  'cs-mark'(t) { const it = CS.deck[CS.idx]; if (!it) return; CS.prog[it.key] = t.dataset.v; csSaveProg(); csGo(CS.idx + 1); },
+  'cs-fq'(t) { const i = Number(t.dataset.i); CS.openA.has(i) ? CS.openA.delete(i) : CS.openA.add(i); csRerender(); },
+  'cs-allA'() { CS.showAllA = !CS.showAllA; CS.openA.clear(); csRerender(); },
+  'cs-reset'() { CS.confirmReset = true; render(); },
+  'cs-reset-no'() { CS.confirmReset = false; render(); },
+  'cs-reset-ok'() { for (const k of Object.keys(CS.prog)) if (k.startsWith(CS.ch + ':')) delete CS.prog[k]; csSaveProg(); CS.confirmReset = false; csReset(); },
+};
+document.addEventListener('change', e => { if (e.target.id === 'cs-sec') { CS.sec = e.target.value; csReset(); } });
+document.addEventListener('keydown', e => {
+  if (S.tab !== 'cases' || S.view || !CS.data || !$('#modal').hidden || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === ' ' || e.key === 'Enter') { if (e.target.tagName === 'BUTTON') return; e.preventDefault(); if (!CS.revealed) CS_ACT['cs-reveal'](); else if (e.key === ' ') csGo(CS.idx + 1); }
+  else if (e.key === 'ArrowRight') csGo(CS.idx + 1);
+  else if (e.key === 'ArrowLeft') csGo(CS.idx - 1);
+  else if ((e.key === '1' || e.key === '2') && CS.revealed && CS.deck[CS.idx]) { CS.prog[CS.deck[CS.idx].key] = e.key === '1' ? 'u' : 'k'; csSaveProg(); csGo(CS.idx + 1); }
+});
+let CST = null;
+document.addEventListener('touchstart', e => { if (S.tab !== 'cases' || e.touches.length !== 1 || !e.target.closest('#cs-card')) { CST = null; return; } CST = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; }, { passive: true });
+document.addEventListener('touchend', e => { if (!CST) return; const t = e.changedTouches[0]; const dx = t.clientX - CST.x, dy = t.clientY - CST.y, dt = Date.now() - CST.t; CST = null; if (dt < 700 && Math.abs(dx) > 70 && Math.abs(dy) < 60) csGo(CS.idx + (dx < 0 ? 1 : -1)); }, { passive: true });
+
 /* ---------- actions ---------- */
 const ACT = {
   tab(t) { S.tab = t.dataset.tab; S.view = null; render(); window.scrollTo(0, 0); },
@@ -989,7 +1194,7 @@ const ACT = {
   lock() { LS.del('key'); KEY = null; S.locked = true; render(); },
   'img-retry'() { if (S.view === 'exam') { $('#paper').innerHTML = renderPaper(); hydrateImages($('#paper')); } else render(); },
 };
-Object.assign(ACT, AG_ACT);
+Object.assign(ACT, AG_ACT, CS_ACT);
 document.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (!t || t.disabled) return; const f = ACT[t.dataset.act]; if (f) { e.preventDefault(); f(t, e); } });
 document.addEventListener('submit', e => { if (e.target.id === 'lock-form') { e.preventDefault(); unlock($('#pw').value.trim()); } });
 document.addEventListener('change', e => {
