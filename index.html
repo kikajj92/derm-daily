@@ -1012,7 +1012,7 @@ document.addEventListener('touchstart', e => { if (S.tab !== 'cards' || AG.view 
 document.addEventListener('touchend', e => { if (!AGT) return; const t = e.changedTouches[0]; const dx = t.clientX - AGT.x, dy = t.clientY - AGT.y, dt = Date.now() - AGT.t; AGT = null; if (dt < 700 && Math.abs(dx) > 70 && Math.abs(dy) < 60) agStep(dx < 0 ? 1 : -1); }, { passive: true });
 
 /* ---------- 증례 카드 (7판 단원별 임상증례·단서 카드) ---------- */
-const CASES_V = '2026-11-05b';
+const CASES_V = '2026-11-05c';
 const CS = Object.assign({ ch: '', sec: 'all', mode: 'case', filter: 'all', shuffle: false, seed: 1, idx: 0 }, LS.get('cases-ui', {}),
   { data: null, err: null, loading: false, revealed: false, openA: new Set(), showAllA: false, deck: [], prog: LS.get('cases-prog', null), confirmReset: false });
 const csSaveUI = () => LS.set('cases-ui', { ch: CS.ch, sec: CS.sec, mode: CS.mode, filter: CS.filter, shuffle: CS.shuffle, seed: CS.seed, idx: CS.idx });
