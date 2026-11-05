@@ -288,7 +288,7 @@ input.num{width:84px;padding:7px 10px;border-radius:8px;border:1px solid var(--r
   .opt{min-height:50px}
 }
 @media (max-width: 640px){
-  .tabs{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:40;background:var(--sheet);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow:visible}
+  .tabs{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:40;background:var(--sheet);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow:visible}
   .tab{padding:13px 4px;border-bottom:0;border-top:2px solid transparent;font-size:13.5px;text-align:center}
   .tab[aria-current="page"]{border-top-color:var(--omr);border-bottom-color:transparent}
   .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
@@ -331,7 +331,48 @@ body{font-feature-settings:"ss06" 1;letter-spacing:-0.005em}
 a.btn{text-decoration:none;color:inherit}
 html{-webkit-text-size-adjust:100%}
 body{padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (max-width: 640px){.tabs{grid-template-columns:repeat(4,1fr)}}
+@media (max-width: 640px){.tabs{grid-template-columns:repeat(5,1fr)}.tab{font-size:12.5px;padding-inline:2px}}
+
+/* At-a-glance 카드노트 */
+.ag-bar{display:grid;gap:8px;margin-top:12px}
+.ag-in{flex:1 1 220px;min-width:0;border:1px solid var(--rule);background:var(--sheet);border-radius:8px;padding:9px 12px;font-size:15px}
+.ag-sel{flex:1 1 180px;min-width:0;max-width:340px;border:1px solid var(--rule);background:var(--sheet);border-radius:8px;padding:9px 10px;font-size:14px}
+.ag-stat{font-size:13px;color:var(--ink-2);margin-left:auto}
+.ag-stat b{font-family:var(--f-mono);font-weight:600;color:var(--ink)}
+.ag-meter{height:4px;background:var(--rule-2);border-radius:2px;overflow:hidden}
+.ag-meter i{display:block;height:100%;background:var(--ok)}
+.ag-part{display:flex;align-items:baseline;gap:10px;padding-top:22px}
+.ag-part .mono{font-size:12px;color:var(--omr);font-weight:600;letter-spacing:.06em}
+.ag-part b{font-family:var(--f-serif);font-size:19px}
+.ag-chh{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--ink-2);padding:12px 0 8px}
+.ag-chh .mono{color:var(--ink-3);font-size:12px}
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px;align-items:start}
+.ag-card{display:flex;flex-direction:column;min-width:0}
+.ag-face{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:0;background:transparent;width:100%;text-align:left;border-radius:10px}
+.ag-meta{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--ink-3)}
+.ag-face h3{font-family:var(--f-serif);font-size:16.5px;line-height:1.35}
+.ag-ko{font-size:13px;color:var(--ink-2)}
+.ag-hint{font-size:12px;color:var(--nov);padding-top:2px}
+.ag-card.open .ag-hint{display:none}
+.ag-card.known{border-color:var(--ok)}
+.ag-card.known .ag-k{color:var(--ok);font-weight:600}
+.ag-back{display:none;border-top:1px dashed var(--rule);padding:10px 14px 12px;flex-direction:column;gap:8px}
+.ag-card.open .ag-back{display:flex}
+.ag-pts{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.ag-pts li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:14px;line-height:1.55;align-items:start;word-break:keep-all;overflow-wrap:anywhere}
+.ag-pts li.nl{grid-template-columns:minmax(0,1fr)}
+.ag-lb{font-size:11px;font-weight:600;color:var(--nov);background:var(--nov-soft);border-radius:4px;padding:1px 6px;margin-top:3px;white-space:nowrap}
+.ag-foot{display:flex;justify-content:flex-end}
+.ag-mark{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--ink-2)}
+.ag-card.known .ag-mark{background:var(--ok-soft);color:var(--ok);border-color:transparent;font-weight:600}
+.ag-deck{display:grid;gap:12px;justify-items:center;margin-top:16px}
+.ag-deck .ag-card{width:100%;max-width:640px;min-height:280px}
+.ag-deck .ag-face{padding:20px 22px;gap:6px}
+.ag-deck .ag-face h3{font-size:22px}
+.ag-deck .ag-ko{font-size:15px}
+.ag-deck .ag-back{padding:14px 22px 16px}
+.ag-deck .ag-pts li{font-size:15px}
+.ag-ctl{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;width:100%;max-width:640px}
 </style>
 </head>
 <body>
@@ -443,13 +484,13 @@ function render() {
   }
 }
 function renderTop() {
-  const tabs = [['today', '오늘'], ['units', '단원별'], ['notes', '오답노트'], ['settings', '설정']];
+  const tabs = [['today', '오늘'], ['units', '단원별'], ['cards', '카드노트'], ['notes', '오답노트'], ['settings', '설정']];
   return `<header class="top"><div class="top-in">
     <div class="brand"><i>1</i><b>피부과 1차</b><span>데일리 모의고사</span></div>
     <nav class="tabs" aria-label="메뉴">${tabs.map(([k, l]) => `<button class="tab" data-act="tab" data-tab="${k}" ${S.tab === k && !S.view ? 'aria-current="page"' : ''}>${l}${k === 'notes' && S.notes.length ? ` <span class="faint mono">${S.notes.length}</span>` : ''}</button>`).join('')}</nav>
   </div></header>`;
 }
-function renderTab() { return S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : S.tab === 'units' ? renderUnits() : renderToday(); }
+function renderTab() { return S.tab === 'cards' ? renderCards() : S.tab === 'notes' ? renderNotes() : S.tab === 'settings' ? renderSettings() : S.tab === 'units' ? renderUnits() : renderToday(); }
 
 /* ---------- lock screen ---------- */
 function renderLock() {
@@ -732,7 +773,7 @@ function renderSettings() {
   </section>`;
 }
 function exportData() {
-  const data = { v: 1, at: new Date().toISOString(), settings: S.settings, notes: S.notes, recs: allRecs() };
+  const data = { v: 1, at: new Date().toISOString(), settings: S.settings, notes: S.notes, recs: allRecs(), aag: [...AG.known] };
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
   a.download = `derm-daily-기록-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
 }
@@ -741,6 +782,7 @@ async function importData(file) {
     const d = JSON.parse(await file.text()); if (!d || !Array.isArray(d.recs)) throw 0;
     for (const r of d.recs) { const cur = recOf(r.id); if (!cur || (cur.status !== 'done' && r.status === 'done')) LS.set('rec:' + r.id, r); }
     const have = new Set(S.notes.map(n => n.id)); for (const n of d.notes || []) if (!have.has(n.id)) S.notes.push(n);
+    if (Array.isArray(d.aag)) { d.aag.forEach(id => AG.known.add(id)); agSave(); }
     LS.set('notes', S.notes); toast('기록을 가져왔어요.'); render();
   } catch { toast('기록 파일을 읽지 못했어요.'); }
 }
@@ -751,6 +793,169 @@ function hideModal() { const m = $('#modal'); m.hidden = true; m.innerHTML = '';
 let toastT = 0;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3800); }
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') hideModal(); });
+
+/* ---------- At-a-glance 카드노트 (Fitzpatrick 9판 박스 요약) ---------- */
+const AAG_V = '2026-11-05a';
+const AG = { data: null, err: null, loading: false, q: '', part: '', ch: '', tag: '', unknown: false, view: 'list', flipAll: false, open: new Set(), deck: [], di: 0, dOpen: false, known: new Set(LS.get('aag-known', [])) };
+const agSave = () => LS.set('aag-known', [...AG.known]);
+const agNorm = s => String(s).toLowerCase().replace(/\s+/g, ' ');
+async function loadAag() {
+  if (AG.data || AG.loading) return;
+  AG.loading = true; AG.err = null;
+  try {
+    const d = await fetchDec('data/aag.enc?v=' + AAG_V);
+    d.cards.forEach(c => { c._s = agNorm([c.front, c.ko, c.cht, ...c.pts].join(' ')); });
+    AG.data = d;
+  } catch (e) { AG.err = '카드를 불러오지 못했어요 (' + (e && e.message || e) + ').'; }
+  AG.loading = false;
+  if (S.tab === 'cards' && !S.view) render();
+}
+function agFiltered() {
+  if (!AG.data) return [];
+  const q = agNorm(AG.q.trim()), ws = q ? q.split(' ') : [];
+  return AG.data.cards.filter(c => (!AG.part || String(c.part) === AG.part) && (!AG.ch || String(c.ch) === AG.ch) &&
+    (!AG.tag || c.tag === AG.tag) && (!AG.unknown || !AG.known.has(c.id)) && ws.every(w => c._s.includes(w)));
+}
+function agPts(pts) {
+  return '<ul class="ag-pts">' + pts.map(p => {
+    const m = p.match(/^([가-힣·A-Za-z]{1,6}):\s*(.+)$/);
+    return m ? `<li><span class="ag-lb">${esc(m[1])}</span><span>${esc(m[2])}</span></li>` : `<li class="nl"><span>${esc(p)}</span></li>`;
+  }).join('') + '</ul>';
+}
+function agCard(c, open) {
+  const k = AG.known.has(c.id);
+  return `<article class="card ag-card${open ? ' open' : ''}${k ? ' known' : ''}" data-id="${c.id}">
+    <button class="ag-face" data-act="ag-flip" aria-expanded="${open}">
+      <span class="ag-meta mono"><span>Ch ${c.ch} · p.${c.bp}</span><span class="ag-k">${k ? '외움' : esc(c.tag)}</span></span>
+      <h3>${esc(c.front)}</h3>${c.ko ? `<span class="ag-ko">${esc(c.ko)}</span>` : ''}
+      <span class="ag-hint">눌러서 뒷면 보기</span>
+    </button>
+    <div class="ag-back">${agPts(c.pts)}<div class="ag-foot"><button class="ag-mark" data-act="ag-mark">${k ? '외웠어요 ✓' : '외웠어요'}</button></div></div>
+  </article>`;
+}
+function agStats(n) {
+  const t = AG.data ? AG.data.cards.length : 0;
+  return `<span class="ag-stat" id="ag-stat">보이는 카드 <b>${n}</b> · 외운 카드 <b>${AG.known.size}</b>/<b>${t}</b></span>`;
+}
+function agBody() {
+  const L = agFiltered();
+  const meter = `<div class="ag-meter" aria-hidden="true"><i style="width:${(AG.known.size / Math.max(1, AG.data.cards.length) * 100).toFixed(1)}%"></i></div>`;
+  if (!L.length) return meter + `<div class="empty" style="margin-top:16px">조건에 맞는 카드가 없어요. 검색어나 필터를 바꿔 보세요.</div>`;
+  if (AG.view === 'deck') {
+    if (!AG.deck.length) agBuildDeck();
+    if (!AG.deck.length) return meter + `<div class="empty" style="margin-top:16px">조건에 맞는 카드가 없어요.</div>`;
+    if (AG.di >= AG.deck.length) AG.di = AG.deck.length - 1;
+    const c = AG.deck[AG.di];
+    return meter + `<div class="ag-deck" id="ag-deck"><span class="note mono">${AG.di + 1} / ${AG.deck.length}</span>${agCard(c, AG.dOpen)}
+      <div class="ag-ctl"><button class="btn" data-act="ag-prev">← 이전</button><button class="btn" data-act="ag-shuffle">섞기</button><button class="btn primary" data-act="ag-next">다음 →</button></div>
+      <span class="note">카드를 눌러 뒤집고, 좌우로 밀어 넘겨요. 키보드: 스페이스 · ←/→ · K</span></div>`;
+  }
+  const P = AG.data.parts;
+  let h = '', curP = null, curC = null, inGrid = false;
+  for (const c of L) {
+    if (c.part !== curP) {
+      if (inGrid) { h += '</div>'; inGrid = false; }
+      const p = P.find(x => x.n === c.part);
+      h += `<div class="ag-part"><span class="mono">PART ${c.part}</span><b>${esc(p ? p.ko : '')}</b></div>`;
+      curP = c.part; curC = null;
+    }
+    if (c.ch !== curC) {
+      if (inGrid) h += '</div>';
+      h += `<div class="ag-chh"><span class="mono">Ch ${c.ch}</span><span>${esc(c.cht)}</span></div><div class="ag-grid">`;
+      curC = c.ch; inGrid = true;
+    }
+    h += agCard(c, AG.flipAll || AG.open.has(c.id));
+  }
+  if (inGrid) h += '</div>';
+  return meter + h;
+}
+function agBuildDeck(keep) {
+  const cur = keep && AG.deck[AG.di] && AG.deck[AG.di].id;
+  AG.deck = agFiltered();
+  AG.di = cur ? Math.max(0, AG.deck.findIndex(c => c.id === cur)) : 0;
+  AG.dOpen = false;
+}
+function agRefresh() {
+  const b = $('#ag-body'), st = $('#ag-stat');
+  if (!b) { render(); return; }
+  b.innerHTML = agBody();
+  if (st) st.outerHTML = agStats(agFiltered().length);
+}
+function renderCards() {
+  if (!AG.data) {
+    if (!AG.loading && !AG.err) setTimeout(loadAag, 0);
+    return `<section class="card" style="padding:22px;display:grid;gap:8px"><h1 class="today-title" style="margin:0">At-a-glance 카드노트</h1>
+      ${AG.err ? `<p class="muted" style="margin:0">${esc(AG.err)}</p><div><button class="btn" data-act="ag-retry">다시 불러오기</button></div>` : '<p class="muted" style="margin:0">카드를 불러오는 중…</p>'}</section>`;
+  }
+  const D = AG.data, n = agFiltered().length;
+  const chs = []; const seen = new Set();
+  D.cards.forEach(c => { if ((!AG.part || String(c.part) === AG.part) && !seen.has(c.ch)) { seen.add(c.ch); chs.push([c.ch, c.cht]); } });
+  if (AG.ch && !seen.has(+AG.ch)) AG.ch = '';
+  const tags = [['', '전체'], ['질환', '질환'], ['기초', '기초'], ['치료·시술', '치료·시술']];
+  return `<section class="card" style="padding:22px;display:grid;gap:6px"><h1 class="today-title" style="margin:0">At-a-glance 카드노트</h1>
+    <p class="muted" style="margin:0">Fitzpatrick 9판 At-a-glance 박스를 한국어로 요약한 카드 ${D.cards.length}장이에요. 카드를 누르면 뒷면이 보이고, 외운 카드는 이 기기에 기억돼요.</p>
+    <p class="note" style="margin:0">쪽수는 Fitz 책 쪽수예요. 시험 기준은 7판이 우선이니, 수치가 다르면 7판을 따르세요.</p></section>
+  <div class="ag-bar">
+    <div class="row"><input class="ag-in" id="ag-q" type="search" value="${esc(AG.q)}" placeholder="질환명·유전자·약물 검색 (예: BRAF, dapsone, 천포창)" aria-label="카드 검색" autocomplete="off">
+      <select class="ag-sel" id="ag-part" aria-label="파트"><option value="">전체 파트</option>${D.parts.map(p => `<option value="${p.n}" ${AG.part === String(p.n) ? 'selected' : ''}>Part ${p.n} ${esc(p.ko)}</option>`).join('')}</select>
+      <select class="ag-sel" id="ag-ch" aria-label="장"><option value="">전체 장</option>${chs.map(([c, t]) => `<option value="${c}" ${AG.ch === String(c) ? 'selected' : ''}>Ch ${c} ${esc(t)}</option>`).join('')}</select></div>
+    <div class="row">${tags.map(([v, l]) => `<button class="chip" data-act="ag-tag" data-v="${v}" aria-pressed="${AG.tag === v}">${l}</button>`).join('')}
+      <button class="chip" data-act="ag-unknown" aria-pressed="${AG.unknown}">안 외운 카드만</button>
+      <span style="width:4px"></span>
+      <button class="chip" data-act="ag-view" data-v="list" aria-pressed="${AG.view === 'list'}">목록</button>
+      <button class="chip" data-act="ag-view" data-v="deck" aria-pressed="${AG.view === 'deck'}">한 장씩</button>
+      ${AG.view === 'list' ? `<button class="chip" data-act="ag-flipall" aria-pressed="${AG.flipAll}">${AG.flipAll ? '모두 앞면으로' : '모두 뒤집기'}</button>` : ''}
+      ${agStats(n)}</div>
+  </div>
+  <div id="ag-body">${agBody()}</div>`;
+}
+function agStep(d) { if (!AG.deck.length) return; AG.di = (AG.di + d + AG.deck.length) % AG.deck.length; AG.dOpen = false; agRefresh(); }
+function agToggleMark(id) {
+  AG.known.has(id) ? AG.known.delete(id) : AG.known.add(id); agSave();
+  if (AG.view === 'deck' || AG.unknown) { if (AG.view === 'list') agRefresh(); else agRefresh(); return; }
+  const el = document.querySelector(`.ag-card[data-id="${id}"]`), c = AG.data.cards.find(x => x.id === id);
+  if (el && c) el.outerHTML = agCard(c, true);
+  const st = $('#ag-stat'); if (st) st.outerHTML = agStats(agFiltered().length);
+  const m = document.querySelector('.ag-meter i'); if (m) m.style.width = (AG.known.size / AG.data.cards.length * 100).toFixed(1) + '%';
+}
+const AG_ACT = {
+  'ag-retry'() { AG.err = null; render(); },
+  'ag-flip'(t) {
+    const card = t.closest('.ag-card'); if (!card) return;
+    if (AG.view === 'deck') { AG.dOpen = !AG.dOpen; agRefresh(); return; }
+    const open = !card.classList.contains('open'); card.classList.toggle('open', open); t.setAttribute('aria-expanded', open);
+    open ? AG.open.add(card.dataset.id) : AG.open.delete(card.dataset.id);
+  },
+  'ag-mark'(t) { const card = t.closest('.ag-card'); if (card) agToggleMark(card.dataset.id); },
+  'ag-tag'(t) { AG.tag = t.dataset.v; AG.deck = []; render(); },
+  'ag-unknown'() { AG.unknown = !AG.unknown; AG.deck = []; render(); },
+  'ag-view'(t) { AG.view = t.dataset.v; if (AG.view === 'deck') agBuildDeck(); render(); },
+  'ag-flipall'() { AG.flipAll = !AG.flipAll; AG.open.clear(); render(); },
+  'ag-next'() { agStep(1); },
+  'ag-prev'() { agStep(-1); },
+  'ag-shuffle'() { const a = AG.deck; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } AG.di = 0; AG.dOpen = false; agRefresh(); },
+};
+let agT = 0;
+document.addEventListener('input', e => {
+  if (e.target.id !== 'ag-q') return;
+  clearTimeout(agT); const v = e.target.value;
+  agT = setTimeout(() => { AG.q = v; AG.deck = []; agRefresh(); }, 150);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'ag-part') { AG.part = t.value; AG.ch = ''; AG.deck = []; render(); }
+  else if (t.id === 'ag-ch') { AG.ch = t.value; AG.deck = []; render(); }
+});
+document.addEventListener('keydown', e => {
+  if (S.tab !== 'cards' || S.view || AG.view !== 'deck' || !AG.data || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (e.key === ' ') { e.preventDefault(); AG.dOpen = !AG.dOpen; agRefresh(); }
+  else if (e.key === 'ArrowRight') agStep(1);
+  else if (e.key === 'ArrowLeft') agStep(-1);
+  else if ((e.key === 'k' || e.key === 'K') && AG.deck[AG.di]) agToggleMark(AG.deck[AG.di].id);
+});
+let AGT = null;
+document.addEventListener('touchstart', e => { if (S.tab !== 'cards' || AG.view !== 'deck' || e.touches.length !== 1 || !e.target.closest('#ag-deck')) { AGT = null; return; } AGT = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; }, { passive: true });
+document.addEventListener('touchend', e => { if (!AGT) return; const t = e.changedTouches[0]; const dx = t.clientX - AGT.x, dy = t.clientY - AGT.y, dt = Date.now() - AGT.t; AGT = null; if (dt < 700 && Math.abs(dx) > 70 && Math.abs(dy) < 60) agStep(dx < 0 ? 1 : -1); }, { passive: true });
 
 /* ---------- actions ---------- */
 const ACT = {
@@ -784,6 +989,7 @@ const ACT = {
   lock() { LS.del('key'); KEY = null; S.locked = true; render(); },
   'img-retry'() { if (S.view === 'exam') { $('#paper').innerHTML = renderPaper(); hydrateImages($('#paper')); } else render(); },
 };
+Object.assign(ACT, AG_ACT);
 document.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (!t || t.disabled) return; const f = ACT[t.dataset.act]; if (f) { e.preventDefault(); f(t, e); } });
 document.addEventListener('submit', e => { if (e.target.id === 'lock-form') { e.preventDefault(); unlock($('#pw').value.trim()); } });
 document.addEventListener('change', e => {
