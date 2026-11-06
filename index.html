@@ -379,6 +379,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px)}
 .cs-chips .chip b{font-family:var(--f-mono);font-size:12px}
 .cs-chips .chip .faint{font-size:11px}
 .cs-chips .chip[aria-pressed="true"] .faint{color:var(--sheet);opacity:.7}
+@media (max-width: 640px){.cs-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:8px}.cs-chips::-webkit-scrollbar{display:none}.cs-chips .chip{flex:0 0 auto}}
 .cs-dots{display:flex;flex-wrap:wrap;gap:4px}
 .cs-dot{width:12px;height:12px;border-radius:3px;border:1px solid var(--rule);background:var(--sheet);padding:0}
 .cs-dot.k{background:var(--ok);border-color:var(--ok)}
@@ -1012,7 +1013,7 @@ document.addEventListener('touchstart', e => { if (S.tab !== 'cards' || AG.view 
 document.addEventListener('touchend', e => { if (!AGT) return; const t = e.changedTouches[0]; const dx = t.clientX - AGT.x, dy = t.clientY - AGT.y, dt = Date.now() - AGT.t; AGT = null; if (dt < 700 && Math.abs(dx) > 70 && Math.abs(dy) < 60) agStep(dx < 0 ? 1 : -1); }, { passive: true });
 
 /* ---------- 증례 카드 (7판 단원별 임상증례·단서 카드) ---------- */
-const CASES_V = '2026-11-05e';
+const CASES_V = '2026-11-06a';
 const CS = Object.assign({ ch: '', sec: 'all', mode: 'case', filter: 'all', shuffle: false, seed: 1, idx: 0 }, LS.get('cases-ui', {}),
   { data: null, err: null, loading: false, revealed: false, openA: new Set(), showAllA: false, deck: [], prog: LS.get('cases-prog', null), confirmReset: false });
 const csSaveUI = () => LS.set('cases-ui', { ch: CS.ch, sec: CS.sec, mode: CS.mode, filter: CS.filter, shuffle: CS.shuffle, seed: CS.seed, idx: CS.idx });
@@ -1092,6 +1093,12 @@ function csDots() {
   return CS.deck.map((it, i) => { const st = CS.prog[it.key] || ''; const lb = (it.kind === 'case' ? '증례 ' + it.c.id : '단서 ' + it.sec.no + '-' + it.n) + (st === 'k' ? ' · 알아요' : st === 'u' ? ' · 다시 볼 카드' : ' · 안 봄');
     return `<button class="cs-dot ${st}${i === CS.idx ? ' cur' : ''}" data-act="cs-go" data-i="${i}" title="${esc(lb)}" aria-label="${esc(lb)}"></button>`; }).join('');
 }
+function csChipCenter() {
+  const box = document.querySelector('.cs-chips'), sel = box && box.querySelector('.chip[aria-pressed="true"]');
+  if (!box || !sel || box.scrollWidth <= box.clientWidth) return;
+  const br = box.getBoundingClientRect(), sr = sel.getBoundingClientRect();
+  box.scrollLeft += (sr.left - br.left) - (br.width - sr.width) / 2;
+}
 function renderCases() {
   if (!CS.data) {
     if (!CS.loading && !CS.err) setTimeout(loadCases, 0);
@@ -1102,6 +1109,7 @@ function renderCases() {
   const scope = csItems(ch, CS.mode).filter(it => CS.sec === 'all' || it.sec.no === CS.sec);
   const cnt = csCounts(scope);
   const nCase = c => c.sections.reduce((a, s) => a + s.cases.length, 0);
+  requestAnimationFrame(csChipCenter);
   return `<section class="card" style="padding:18px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px">
     <div class="sec-h" style="margin:0"><h1 class="today-title" style="margin:0">증례 카드</h1><span class="note mono">알아요 ${cnt.k} · 다시 볼 ${cnt.u} · 안 봄 ${cnt.n}</span></div>
     <div class="row cs-chips" role="group" aria-label="단원">${D.chapters.map(c => `<button class="chip" data-act="cs-ch" data-v="${esc(c.no)}" aria-pressed="${c.no === ch.no}"><b>${esc(c.no)}</b>${esc(c.short || c.title)}<span class="faint mono">${nCase(c)}</span></button>`).join('')}</div>
